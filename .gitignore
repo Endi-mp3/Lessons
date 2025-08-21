@@ -1,1 +1,8 @@
-.README.md.swp
+**.swp
+build
+.DS_Store
+a.out
+*.out
+*.o
+
+.build

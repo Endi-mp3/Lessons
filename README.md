@@ -54,5 +54,15 @@ Get new commits from remote machine to local git repository:
     `git pull`
 
     If concreate branch required:
-    
+
     `git pull origin <branchname>`
+
+# Build
+
+
+# Tests
+
+## Fibonacci
+
+    > Lessons % cd tests/additional/fibonacci
+    > fibonacci % ./test.sh fib.txt <path to fibonacci binary>
