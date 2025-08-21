@@ -22,6 +22,25 @@ Very basic C lessons and homework tasks.
 
     Add new file for tracking or add file to save changes in commit
 
-        `git add <filename>`
+        `git add <filename> <filename2> <directoryname>`
 
+    Create new commit with editor window:
+    
+        `git commit`
+    
+    Create new commit with message:
+
+        `git commit -m "Commit message"`
+
+    Create new commit with message and for add already tracked files (doesn't affect on new files):
+
+        `git commit -am 'message'`
+
+    Send new commits from local machine to remote git server:
+
+        `git push origin <branch>`
+
+    Main branch
+
+        `git push origin main`
 
