@@ -1,0 +1,22 @@
+# Object files
+*.o
+
+# Executable file
+uart_test
+
+# Backup files
+*~
+*.bak
+
+# Temporary files
+*.swp
+*.tmp
+
+# IDE/editor folders (на выбор, по тому, чем пользуешься)
+.vscode/
+.idea/
+*.code-workspace
+
+# Логи, если появятся
+*.log
+

@@ -87,12 +87,29 @@ Failed tests:  422
 
 ---
 
-## 💡 Подсказка
+## 📊 UART Register Bit Layout
 
-- `UART_CTRL` использует:
-  - Бит 0: `enable`
-  - Биты 1–2: `mode`
-  - Бит 3: `locale`
-  - Биты 4–5: `color`
-- `UART_BAUD` использует:
-  - Биты 0–2: `baud`
+### 🧩 `UART_CTRL` — Control Register (8 bits)
+
+| Bits | Field   | Description                          | Values                          |
+|------|---------|--------------------------------------|----------------------------------|
+| 0    | `EN`    | Enable UART                          | `0` = disabled, `1` = enabled    |
+| 1–2  | `MODE`  | Transmission mode                    | `00` = ASCII, `01` = UTF-8, `10` = HEX |
+| 3    | `LOCALE`| Language locale                      | `0` = EN, `1` = RU               |
+| 4–5  | `COLOR` | Text color                           | `00` = White, `01` = Green, `10` = Red |
+| 6–7  | —       | Reserved                             | —                                |
+
+### 🧩 `UART_BAUD` — Baud Rate Register (8 bits)
+
+| Bits | Field   | Description                          | Values                          |
+|------|---------|--------------------------------------|----------------------------------|
+| 0–2  | `BAUD`  | Baud rate                            | `000` = 9600, `001` = 19200, `010` = 38400, `011` = 57600, `100` = 115200 |
+| 3–7  | —       | Reserved                             | —                                |
+
+### 🧩 `UART_STATUS` — Status Register (8 bits, read-only)
+
+| Bits | Field   | Description                          | Values                          |
+|------|---------|--------------------------------------|----------------------------------|
+| 0    | `READY` | UART is ready                        | `1` = ready                      |
+| 1    | `ERROR` | Configuration error                  | `1` = error detected             |
+| 2–7  | —       | Reserved                             | —                                |
