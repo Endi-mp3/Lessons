@@ -100,7 +100,7 @@ int convert_char_to_u8(const char* arg)
 uint64_t fibonacci(uint8_t target)
 {
 	uint64_t res = 0;
-	// with recursive
+	// with recursive§
 	return target;
 }
 
