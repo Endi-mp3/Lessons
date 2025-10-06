@@ -6,7 +6,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g
 
 # Source and header files
-SRCS = main.c private.c stud_uart.c
+SRCS = main.c private.c stud_uart.c stud_serialize.c
 HDRS = private.h
 
 # Object files

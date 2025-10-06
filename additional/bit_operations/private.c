@@ -31,3 +31,8 @@ void uart_reset_registers(void) {
     UART_STATUS = 0;
 }
 
+size_t serialize(uint8_t *out, void *structure, int type)
+{
+	return 0;
+}
+
