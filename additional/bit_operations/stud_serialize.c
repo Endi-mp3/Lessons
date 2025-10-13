@@ -45,3 +45,4 @@ size_t stud_serialize(uint8_t *out, void *structure, int type)
     return i; // return number of bytes written. Resulting length of out array.
 }
 
+
