@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/genii/Lessons-2/additional/bit_operations",
+      "program": "/Users/genii/Lessons-2/additional/bit_operations/build/Debug/outDebug"
+    }
+  ]
+}
