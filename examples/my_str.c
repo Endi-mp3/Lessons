@@ -2,7 +2,7 @@
 
 int string2num(const char* string, unsigned long *out)
 {
-	if (out == NULL)
+	if (out == NULL) // check that out is not empty
 		return -1;
 
 	unsigned long num = 0; // initialize result. *out can be used without variable on stack
@@ -21,6 +21,7 @@ int main(int argc, const char* argv[])
 {
 	unsigned long test;
 	int r = string2num(argv[1], &test);
+
 	printf("%lu\n", test);
 	return r;
 }
