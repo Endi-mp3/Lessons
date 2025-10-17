@@ -1,0 +1,118 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:144.0) Gecko/20100101 Firefox/144.0" version="28.2.7">
+  <diagram name="Страница — 1" id="uSIheWvpuzU60DOnTNbo">
+    <mxGraphModel dx="1138" dy="671" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="-PnLcSwllOI2cET67IQR-31" value="Термит" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1215" width="160" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;shape=flexArrow;startArrow=classic;startFill=1;" edge="1" parent="1" source="-PnLcSwllOI2cET67IQR-19" target="-PnLcSwllOI2cET67IQR-28">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="540" y="1030" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-19" value="GameEventLoop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="750" y="800" width="160" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-14" value="&amp;nbsp;Сервер" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;gradientColor=#97d077;strokeColor=#82b366;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="130" y="830" width="160" height="640" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="-PnLcSwllOI2cET67IQR-12" target="-PnLcSwllOI2cET67IQR-14">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="510" y="740" />
+              <mxPoint x="210" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-12" value="Организатор" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcd28;gradientColor=#ffa500;strokeColor=#d79b00;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="440" y="460" width="140" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-1" value="Чтение из файла настроек" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="820" y="1240" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-3" value="Вывод на экран настроек" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;gradientColor=#b3b3b3;" vertex="1" parent="1">
+          <mxGeometry x="470" y="490" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-6" value="Вывод на экран поля для ввода" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="470" y="552.5" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-8" value="Создание API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;gradientColor=#ea6b66;" vertex="1" parent="1">
+          <mxGeometry x="790" y="840" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="-PnLcSwllOI2cET67IQR-11" target="-PnLcSwllOI2cET67IQR-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-11" value="Старт программы" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#e6d0de;gradientColor=#d5739d;strokeColor=#996185;" vertex="1" parent="1">
+          <mxGeometry x="420" y="230" width="180" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="-PnLcSwllOI2cET67IQR-15" target="-PnLcSwllOI2cET67IQR-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-15" value="Вывод на экран поле" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="150" y="1320" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-16" value="Вывод на экран статистика" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="160" y="850" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-17" value="Вывод на экран поля для ввода" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;" vertex="1" parent="1">
+          <mxGeometry x="160" y="910" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-23" value="Создание API для пользователя" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;" vertex="1" parent="1">
+          <mxGeometry x="160" y="970" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-24" value="Создание обработчика событий игры (GameEventLoop)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;gradientColor=#ea6b66;" vertex="1" parent="1">
+          <mxGeometry x="790" y="900" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.027;entryY=0.529;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="294.32" y="1071.4088235294118" as="sourcePoint" />
+            <mxPoint x="750.0000000000001" y="930.0499999999998" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="464.32" y="1071.35" />
+              <mxPoint x="464.32" y="930.35" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-26" value="Создание&lt;br&gt;обработчика событий игры&lt;br&gt;(GameEventLoop)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="-PnLcSwllOI2cET67IQR-25">
+          <mxGeometry x="-0.548" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-27" value="Создание API для пользователя" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="470" y="620" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-28" value="Игровое поле" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6d0de;gradientColor=#d5739d;strokeColor=#996185;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="460" y="1220" width="160" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="-PnLcSwllOI2cET67IQR-29" target="-PnLcSwllOI2cET67IQR-31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-29" value="Создание термитов в памяти и заполнение программами из файлов" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;gradientColor=#7ea6e0;" vertex="1" parent="1">
+          <mxGeometry x="490" y="1270" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-7" value="Инициализация клеток поля, расположение термитов" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6d0de;strokeColor=#996185;gradientColor=#d5739d;" vertex="1" parent="1">
+          <mxGeometry x="490" y="1330" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-30" value="Создание API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6d0de;strokeColor=#996185;gradientColor=#d5739d;" vertex="1" parent="1">
+          <mxGeometry x="490" y="1390" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-32" value="Определение внутренней структуры, решение какие свойства на каком уровне хранить" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;gradientColor=#7ea6e0;" vertex="1" parent="1">
+          <mxGeometry x="827" y="1300" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-36" value="Создатель окошек (WinMgmt)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="800" y="470" width="140" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-37" value="Разделение экрана на несколько зон вывода/ввода" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;gradientColor=#b3b3b3;" vertex="1" parent="1">
+          <mxGeometry x="820" y="520" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="-PnLcSwllOI2cET67IQR-38" value="Создание API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;gradientColor=#b3b3b3;" vertex="1" parent="1">
+          <mxGeometry x="820" y="580" width="240" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
