@@ -9,8 +9,8 @@ INCLUDE = -I/opt/homebrew/opt/ncurses/include
 
 
 # Source and header files
-SRCS = mgvmgmt.c MyMenu.c main.c
-HDRS = MyMenu.h MyMenu_Types.h mgvmgmt.h
+SRCS = msv_menu.c main.c msv_cellular.c msv_console.c msv_io.c msv_splitview.c msv_stat_info.c
+HDRS = msv_menu.h msv_menu_types.h msv_cellular.h msv_console.h msv_io.h msv_splitview.h msv_stat_info.h
 
 # Object files
 OBJS = $(SRCS:.c=.o)

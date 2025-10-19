@@ -13,7 +13,7 @@ typedef enum
     MENU_ITEM_BUTTON
 } MenuItemType;
 
-typedef struct MyMenuItem
+typedef struct MsvMenuItem
 {
     MenuItemType type;
     char *title;
@@ -22,18 +22,18 @@ typedef struct MyMenuItem
         int intValue;
         bool boolValue;
         char *strValue;
-        struct MyMenu *submenu;
+        struct MsvMenu *submenu;
         mymenu_button_callback_t callback;  // <--- добавлено
     } data;
-    struct MyMenuItem *next;
-} MyMenuItem;
+    struct MsvMenuItem *next;
+} MsvMenuItem;
 
 
-typedef struct MyMenu
+typedef struct MsvMenu
 {
     char *title;
-    MyMenuItem *items;
-    struct MyMenu *parent;  // для возврата назад
-} MyMenu;
+    MsvMenuItem *items;
+    struct MsvMenu *parent;  // для возврата назад
+} MsvMenu;
 
 

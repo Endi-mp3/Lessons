@@ -1,66 +1,71 @@
-#include "MyMenu.h"
+#include <unistd.h>
+#include "msv_menu.h"
 #include <stdio.h>
+#include "msv_splitview.h"
+#include "msv_stat_info.h"
+#include "msv_cellular.h"
+#include <ncurses.h>
+#include <string.h>
 
-#include "mgvmgmt.h"
+static const char* get_population(void) { return "256"; }
+static const char* get_alive(void)      { return "128"; }
 #include <ncurses.h>
 #include <stdlib.h>
 
 int on_hello(void* __attribute((unused))__pv)
 {
     printf("Hello from callback %s!\n", __FUNCTION__);
-    // Инициализация поля 256x256
-    mgvmgmt_init(256, 256);
-
-    // Закрасим диагональ для наглядности
-    for (int i = 0; i < 50; i++) {
-        mgvmgmt_set_cell(i, i, 1, (i % 7) + 2);
-    }
-
-    // Добавим игрока 0 в точку (5,5)
-    mgvmgmt_add_player(0, 5, 5, 3);
-
-    // Основной цикл
-    int ch;
-    while ((ch = getch()) != 'q') {
-        switch (ch) {
-            // Движение игрока стрелками
-            case KEY_UP:    mgvmgmt_move_player(0, 0, -1); break;
-            case KEY_DOWN:  mgvmgmt_move_player(0, 0,  1); break;
-            case KEY_LEFT:  mgvmgmt_move_player(0, -1, 0); break;
-            case KEY_RIGHT: mgvmgmt_move_player(0,  1, 0); break;
-
-            // Скроллинг viewport клавишами WAS
-			case 'w': mgvmgmt_scroll_viewport(0, -1); break;
-			case 's': mgvmgmt_scroll_viewport(0,  1); break;
-			case 'a': mgvmgmt_scroll_viewport(-1, 0); break;
-			case 'd': mgvmgmt_scroll_viewport( 1, 0); break;
-        }
-
-        // Перерисовка
-        mgvmgmt_draw_field();
-    }
-
-    mgvmgmt_shutdown();
     return 0;
 }
 
 int main()
 {
-    MyMenu* root = mymenu_create("Main Menu");
+    initscr();
+    cbreak();
+    noecho();
+    curs_set(0);
+    keypad(stdscr, TRUE);
+    start_color();
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_RED, COLOR_BLACK);
 
-    int id_volume = mymenu_create_int_config(root, "Volume", 5);
-    int id_music  = mymenu_create_checkbox(root, "Music", true);
 
-    MyMenu* settings = mymenu_create_submenu(root, "Settings");
-    int id_name = mymenu_create_string(settings, "Player Name", "Alex");
-    mymenu_create_button(settings, "Start test game!", on_hello);
-	mymenu_show(root);
+	MsvMenu *menu = msv_menu_create("Main Menu");
+	msv_menu_create_start_button(menu, "Start");
 
-    int volume;
-    mymenu_get_config(root, id_volume, &volume);
-    printf("Current volume: %d\n", volume);
+	int result = msv_menu_show(menu, -1);
 
-    mymenu_delete(root);
+    msv_init();
+
+    int right = msv_create_split(0, MSV_SPLIT_VERTICAL);
+    int bot = msv_create_split(right, MSV_SPLIT_HORIZONTAL);
+
+    // stats
+    msv_stat_init(right);
+    msv_stat_add("Population", get_population);
+    msv_stat_add("Alive", get_alive);
+	msv_stat_draw();
+	msv_menu_show(menu, bot);
+    // cellular grid on left
+    msv_cell_init(0, 10, 5);
+    msv_cell_set(2, 2, 1, 'O', 2);
+    msv_cell_set(3, 2, 1, 'X', 3);
+	msv_cell_step(0);
+	bool running = true;
+	while(running) {
+		msv_cell_step(0);
+		msv_stat_step(right);
+	    int st1 = msv_menu_step(&menu, bot);
+		if (st1 == 1) running = false;
+		if (st1 == 2) running = false;
+
+		doupdate();
+		usleep(16000);
+	}
+
+    getch();
+    msv_shutdown();
+    endwin();
     return 0;
 }
-
