@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MyMenu_Types.h"
+#include <ncurses.h>
 
 struct MyMenu; // свободное описание
 struct MyMenu *mymenu_create(const char* title);
@@ -15,7 +16,7 @@ int mymenu_create_start_button(struct MyMenu* parentPtr, const char* title);
 
 typedef int (*mymeny_button_callback_t)(void* pvPtr);
 
-int mymenu_create_button(struct MyMenu* parentPtr, const char* title, mymeny_button_callback_t *cb);
+int mymenu_create_button(struct MyMenu* parentPtr, const char* title, mymeny_button_callback_t cb);
 
 int mymenu_get_config(struct MyMenu* rootPtr, int id, void* resultPtr);
 

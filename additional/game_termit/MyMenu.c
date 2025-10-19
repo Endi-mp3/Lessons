@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "MyMenu_Types.h"
+#include "MyMenu.h"
 
 static int global_id_counter = 1;
 

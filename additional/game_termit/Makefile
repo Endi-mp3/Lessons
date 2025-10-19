@@ -3,14 +3,14 @@ TARGET = termit_app
 
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncursesw)
-LDFLAGS = $(shell pkg-config --libs ncursesw)
+CFLAGS = -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
+LDFLAGS = $(shell pkg-config --libs ncurses)
 INCLUDE = -I/opt/homebrew/opt/ncurses/include
 
 
 # Source and header files
-SRCS = main.c MyMenu.c
-HDRS = MyMenu.h MyMenu_Types.h
+SRCS = mgvmgmt.c MyMenu.c main.c
+HDRS = MyMenu.h MyMenu_Types.h mgvmgmt.h
 
 # Object files
 OBJS = $(SRCS:.c=.o)
@@ -20,11 +20,11 @@ all: $(TARGET)
 
 # Link object files into final executable
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compile source files into object files
 %.o: %.c $(HDRS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@  $(LDFLAGS)
 
 # Run the program
 test: $(TARGET)
