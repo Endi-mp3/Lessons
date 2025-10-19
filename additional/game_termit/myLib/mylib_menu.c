@@ -1,48 +1,50 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-#include "msv_menu.h"
-#include "msv_splitview.h"
-#include "msv_io.h"
+#include "mylib_menu.h"
+#include "mylib_splitview.h"
+#include "mylib_io.h"
 
 static int global_id_counter = 1;
 
 // ---------------- Creation / deletion ----------------
 
-MsvMenu *msv_menu_create(const char* title) {
-    MsvMenu* menu = calloc(1, sizeof(MsvMenu));
+MyLibMenu *mylib_menu_create(const char* title)
+{
+    MyLibMenu* menu = calloc(1, sizeof(MyLibMenu));
     if (!menu) return NULL;
     menu->title = strdup(title);
     menu->items = NULL;
     menu->parent = NULL;
 
     // default Quit button
-    MsvMenuItem* exitBtn = calloc(1, sizeof(MsvMenuItem));
-    exitBtn->type = MSV_MENU_ITEM_BUTTON;
+    MyLibMenuItem* exitBtn = calloc(1, sizeof(MyLibMenuItem));
+    exitBtn->type = MYLIB_MENU_ITEM_BUTTON;
     exitBtn->title = strdup("Quit");
-    exitBtn->id = MSV_MENU_RET_BTN_QUIT;
+    exitBtn->id = MYLIB_MENU_RET_BTN_QUIT;
     exitBtn->next = NULL;
     menu->items = exitBtn;
 
     return menu;
 }
 
-MsvMenu *msv_menu_create_submenu(MsvMenu* parentPtr, const char* title) {
+MyLibMenu *mylib_menu_create_submenu(MyLibMenu* parentPtr, const char* title)
+{
     if (!parentPtr) return NULL;
-    MsvMenu* submenu = calloc(1, sizeof(MsvMenu));
+    MyLibMenu* submenu = calloc(1, sizeof(MyLibMenu));
     submenu->title = strdup(title);
     submenu->parent = parentPtr;
 
     // Back button
-    MsvMenuItem* backBtn = calloc(1, sizeof(MsvMenuItem));
-    backBtn->type = MSV_MENU_ITEM_BUTTON;
+    MyLibMenuItem* backBtn = calloc(1, sizeof(MyLibMenuItem));
+    backBtn->type = MYLIB_MENU_ITEM_BUTTON;
     backBtn->title = strdup("Back");
-    backBtn->id = MSV_MENU_RET_BTN_BACK;
+    backBtn->id = MYLIB_MENU_RET_BTN_BACK;
     submenu->items = backBtn;
 
     // Add link in parent
-    MsvMenuItem* item = calloc(1, sizeof(MsvMenuItem));
-    item->type = MSV_MENU_ITEM_SUBMENU;
+    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = MYLIB_MENU_ITEM_SUBMENU;
     item->title = strdup(title);
     item->data.submenu = submenu;
     item->next = parentPtr->items;
@@ -51,16 +53,17 @@ MsvMenu *msv_menu_create_submenu(MsvMenu* parentPtr, const char* title) {
     return submenu;
 }
 
-void msv_menu_delete(MsvMenu* ptr) {
+void mylib_menu_delete(MyLibMenu* ptr)
+{
     if (!ptr) return;
-    MsvMenuItem* it = ptr->items;
+    MyLibMenuItem* it = ptr->items;
     while (it) {
-        MsvMenuItem* next = it->next;
+        MyLibMenuItem* next = it->next;
         free(it->title);
-        if (it->type == MSV_MENU_ITEM_STRING && it->data.strValue)
+        if (it->type == MYLIB_MENU_ITEM_STRING && it->data.strValue)
             free(it->data.strValue);
-        if (it->type == MSV_MENU_ITEM_SUBMENU)
-            msv_menu_delete(it->data.submenu);
+        if (it->type == MYLIB_MENU_ITEM_SUBMENU)
+            mylib_menu_delete(it->data.submenu);
         free(it);
         it = next;
     }
@@ -70,10 +73,11 @@ void msv_menu_delete(MsvMenu* ptr) {
 
 // ---------------- Item creation ----------------
 
-int msv_menu_create_int_config(MsvMenu* parentPtr, const char* title, int defaultValue) {
+int mylib_menu_create_int_config(MyLibMenu* parentPtr, const char* title, int defaultValue)
+{
     if (!parentPtr) return -1;
-    MsvMenuItem* item = calloc(1, sizeof(MsvMenuItem));
-    item->type = MSV_MENU_ITEM_INT;
+    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = MYLIB_MENU_ITEM_INT;
     item->title = strdup(title);
     item->id = global_id_counter++;
     item->data.intValue = defaultValue;
@@ -82,10 +86,11 @@ int msv_menu_create_int_config(MsvMenu* parentPtr, const char* title, int defaul
     return item->id;
 }
 
-int msv_menu_create_checkbox(MsvMenu* parentPtr, const char* title, bool defaultValue) {
+int mylib_menu_create_checkbox(MyLibMenu* parentPtr, const char* title, bool defaultValue)
+{
     if (!parentPtr) return -1;
-    MsvMenuItem* item = calloc(1, sizeof(MsvMenuItem));
-    item->type = MSV_MENU_ITEM_CHECKBOX;
+    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = MYLIB_MENU_ITEM_CHECKBOX;
     item->title = strdup(title);
     item->id = global_id_counter++;
     item->data.boolValue = defaultValue;
@@ -94,10 +99,11 @@ int msv_menu_create_checkbox(MsvMenu* parentPtr, const char* title, bool default
     return item->id;
 }
 
-int msv_menu_create_string(MsvMenu* parentPtr, const char* title, const char* defaultValue) {
+int mylib_menu_create_string(MyLibMenu* parentPtr, const char* title, const char* defaultValue)
+{
     if (!parentPtr) return -1;
-    MsvMenuItem* item = calloc(1, sizeof(MsvMenuItem));
-    item->type = MSV_MENU_ITEM_STRING;
+    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = MYLIB_MENU_ITEM_STRING;
     item->title = strdup(title);
     item->id = global_id_counter++;
     item->data.strValue = strdup(defaultValue ? defaultValue : "");
@@ -106,32 +112,35 @@ int msv_menu_create_string(MsvMenu* parentPtr, const char* title, const char* de
     return item->id;
 }
 
-int msv_menu_create_exit_button(MsvMenu* parentPtr, const char* title) {
+int mylib_menu_create_exit_button(MyLibMenu* parentPtr, const char* title)
+{
     if (!parentPtr) return -1;
-    MsvMenuItem* item = calloc(1, sizeof(MsvMenuItem));
-    item->type = MSV_MENU_ITEM_BUTTON;
+    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = MYLIB_MENU_ITEM_BUTTON;
     item->title = strdup(title ? title : "Quit");
-    item->id = MSV_MENU_RET_BTN_QUIT;
+    item->id = MYLIB_MENU_RET_BTN_QUIT;
     item->next = parentPtr->items;
     parentPtr->items = item;
     return item->id;
 }
 
-int msv_menu_create_start_button(MsvMenu* parentPtr, const char* title) {
+int mylib_menu_create_start_button(MyLibMenu* parentPtr, const char* title)
+{
     if (!parentPtr) return -1;
-    MsvMenuItem* item = calloc(1, sizeof(MsvMenuItem));
-    item->type = MSV_MENU_ITEM_BUTTON;
+    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = MYLIB_MENU_ITEM_BUTTON;
     item->title = strdup(title ? title : "Start");
-    item->id = MSV_MENU_RET_BTN_START;
+    item->id = MYLIB_MENU_RET_BTN_START;
     item->next = parentPtr->items;
     parentPtr->items = item;
     return item->id;
 }
 
-int msv_menu_create_button(MsvMenu* parentPtr, const char* title, mymeny_button_callback_t cb) {
+int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mymeny_button_callback_t cb)
+{
     if (!parentPtr) return -1;
-    MsvMenuItem* item = calloc(1, sizeof(MsvMenuItem));
-    item->type = MSV_MENU_ITEM_BUTTON;
+    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = MYLIB_MENU_ITEM_BUTTON;
     item->title = strdup(title);
     item->id = global_id_counter++;
     item->data.callback = cb;
@@ -142,27 +151,28 @@ int msv_menu_create_button(MsvMenu* parentPtr, const char* title, mymeny_button_
 
 // ---------------- Config retrieval ----------------
 
-int msv_menu_get_config(MsvMenu* rootPtr, int id, void* resultPtr) {
+int mylib_menu_get_config(MyLibMenu* rootPtr, int id, void* resultPtr)
+{
     if (!rootPtr) return -1;
-    MsvMenuItem* it = rootPtr->items;
+    MyLibMenuItem* it = rootPtr->items;
     while (it) {
         if (it->id == id) {
             switch (it->type) {
-                case MSV_MENU_ITEM_INT:
+                case MYLIB_MENU_ITEM_INT:
                     *(int*)resultPtr = it->data.intValue;
                     return 0;
-                case MSV_MENU_ITEM_CHECKBOX:
+                case MYLIB_MENU_ITEM_CHECKBOX:
                     *(bool*)resultPtr = it->data.boolValue;
                     return 0;
-                case MSV_MENU_ITEM_STRING:
+                case MYLIB_MENU_ITEM_STRING:
                     *(char**)resultPtr = strdup(it->data.strValue ? it->data.strValue : "");
                     return 0;
                 default:
                     return -1;
             }
         }
-        if (it->type == MSV_MENU_ITEM_SUBMENU) {
-            if (msv_menu_get_config(it->data.submenu, id, resultPtr) == 0)
+        if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
+            if (mylib_menu_get_config(it->data.submenu, id, resultPtr) == 0)
                 return 0;
         }
         it = it->next;
@@ -171,14 +181,15 @@ int msv_menu_get_config(MsvMenu* rootPtr, int id, void* resultPtr) {
 }
 
 // ---------------- Show menu (blocking) ----------------
-int msv_menu_show(MsvMenu* root, int split_id) {
+int mylib_menu_show(MyLibMenu* root, int split_id)
+{
     if (!root) return -1;
 
-    MsvMenu* current = root;
+    MyLibMenu* current = root;
     int choice = 0;
     int ch;
 
-    WINDOW *w = (split_id == -1) ? stdscr : msv_get_win(split_id);
+    WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, FALSE);
@@ -189,25 +200,25 @@ int msv_menu_show(MsvMenu* root, int split_id) {
             clear();
             mvprintw(0, 0, "Menu: %s", current->title);
         } else {
-            msv_io_clear(split_id);
-            msv_io_print_at(split_id, 0, 1, "Menu: %s", current->title);
+            mylib_io_clear(split_id);
+            mylib_io_print_at(split_id, 0, 1, "Menu: %s", current->title);
         }
 
         // Отрисовка пунктов
         int idx = 0;
-        MsvMenuItem* it = current->items;
+        MyLibMenuItem* it = current->items;
         while (it) {
             if (idx == choice) wattron(w, A_REVERSE);
 
             if (split_id == -1) {
                 switch (it->type) {
-                    case MSV_MENU_ITEM_CHECKBOX:
+                    case MYLIB_MENU_ITEM_CHECKBOX:
                         mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
                         break;
-                    case MSV_MENU_ITEM_INT:
+                    case MYLIB_MENU_ITEM_INT:
                         mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
                         break;
-                    case MSV_MENU_ITEM_STRING:
+                    case MYLIB_MENU_ITEM_STRING:
                         mvprintw(idx+2, 2, "%s: %s", it->title,
                                  it->data.strValue?it->data.strValue:"");
                         break;
@@ -217,20 +228,20 @@ int msv_menu_show(MsvMenu* root, int split_id) {
                 }
             } else {
                 switch (it->type) {
-                    case MSV_MENU_ITEM_CHECKBOX:
-                        msv_io_print_at(split_id, idx+2, 2, "[%c] %s",
+                    case MYLIB_MENU_ITEM_CHECKBOX:
+                        mylib_io_print_at(split_id, idx+2, 2, "[%c] %s",
                                         it->data.boolValue?'X':' ', it->title);
                         break;
-                    case MSV_MENU_ITEM_INT:
-                        msv_io_print_at(split_id, idx+2, 2, "%s: %d",
+                    case MYLIB_MENU_ITEM_INT:
+                        mylib_io_print_at(split_id, idx+2, 2, "%s: %d",
                                         it->title, it->data.intValue);
                         break;
-                    case MSV_MENU_ITEM_STRING:
-                        msv_io_print_at(split_id, idx+2, 2, "%s: %s",
+                    case MYLIB_MENU_ITEM_STRING:
+                        mylib_io_print_at(split_id, idx+2, 2, "%s: %s",
                                         it->title, it->data.strValue?it->data.strValue:"");
                         break;
                     default:
-                        msv_io_print_at(split_id, idx+2, 2, "%s", it->title);
+                        mylib_io_print_at(split_id, idx+2, 2, "%s", it->title);
                         break;
                 }
             }
@@ -260,7 +271,7 @@ int msv_menu_show(MsvMenu* root, int split_id) {
                 {
                     int i = 0;
                     for (it = current->items; it; it = it->next, i++) {
-                        if (i == choice && it->type == MSV_MENU_ITEM_INT) {
+                        if (i == choice && it->type == MYLIB_MENU_ITEM_INT) {
                             it->data.intValue -= 1;
                             break;
                         }
@@ -271,7 +282,7 @@ int msv_menu_show(MsvMenu* root, int split_id) {
                 {
                     int i = 0;
                     for (it = current->items; it; it = it->next, i++) {
-                        if (i == choice && it->type == MSV_MENU_ITEM_INT) {
+                        if (i == choice && it->type == MYLIB_MENU_ITEM_INT) {
                             it->data.intValue += 1;
                             break;
                         }
@@ -284,27 +295,27 @@ int msv_menu_show(MsvMenu* root, int split_id) {
                     int i = 0;
                     for (it = current->items; it; it = it->next, i++) {
                         if (i == choice) {
-                            if (it->type == MSV_MENU_ITEM_SUBMENU) {
+                            if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
                                 current = it->data.submenu;
                                 choice = 0;
                                 break;
-                            } else if (it->id == MSV_MENU_RET_BTN_QUIT) {
+                            } else if (it->id == MYLIB_MENU_RET_BTN_QUIT) {
                                 return 1;
-                            } else if (it->id == MSV_MENU_RET_BTN_START) {
+                            } else if (it->id == MYLIB_MENU_RET_BTN_START) {
                                 return 0;
-                            } else if (it->id == MSV_MENU_RET_BTN_BACK) {
+                            } else if (it->id == MYLIB_MENU_RET_BTN_BACK) {
                                 if (current->parent) {
                                     current = current->parent;
                                     choice = 0;
                                     break;
                                 }
-                            } else if (it->type == MSV_MENU_ITEM_BUTTON && it->data.callback) {
+                            } else if (it->type == MYLIB_MENU_ITEM_BUTTON && it->data.callback) {
                                 it->data.callback(NULL);
                                 break;
-                            } else if (it->type == MSV_MENU_ITEM_CHECKBOX) {
+                            } else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
                                 it->data.boolValue = !it->data.boolValue;
                                 break;
-                            } else if (it->type == MSV_MENU_ITEM_INT) {
+                            } else if (it->type == MYLIB_MENU_ITEM_INT) {
                                 echo();
                                 curs_set(1);
                                 char buf[32];
@@ -312,14 +323,14 @@ int msv_menu_show(MsvMenu* root, int split_id) {
                                     mvprintw(LINES-2, 0, "Input new number: ");
                                     getnstr(buf, sizeof(buf)-1);
                                 } else {
-                                    msv_io_print_at(split_id, idx+4, 2, "Input new number: ");
+                                    mylib_io_print_at(split_id, idx+4, 2, "Input new number: ");
                                     wgetnstr(w, buf, sizeof(buf)-1);
                                 }
                                 it->data.intValue = atoi(buf);
                                 noecho();
                                 curs_set(0);
                                 break;
-                            } else if (it->type == MSV_MENU_ITEM_STRING) {
+                            } else if (it->type == MYLIB_MENU_ITEM_STRING) {
                                 echo();
                                 curs_set(1);
                                 char buf[256];
@@ -327,7 +338,7 @@ int msv_menu_show(MsvMenu* root, int split_id) {
                                     mvprintw(LINES-2, 0, "Input new string: ");
                                     getnstr(buf, sizeof(buf)-1);
                                 } else {
-                                    msv_io_print_at(split_id, idx+4, 2, "Input new string: ");
+                                    mylib_io_print_at(split_id, idx+4, 2, "Input new string: ");
                                     wgetnstr(w, buf, sizeof(buf)-1);
                                 }
                                 free(it->data.strValue);
@@ -355,13 +366,13 @@ int msv_menu_show(MsvMenu* root, int split_id) {
     return -1;
 }
 
-int msv_menu_step(MsvMenu **ppCurrent, int split_id)
+int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
 {
     if (!ppCurrent || !*ppCurrent) return -1;
-    MsvMenu *current = *ppCurrent;
+    MyLibMenu *current = *ppCurrent;
     static int choice = 0;
 
-    WINDOW *w = (split_id == -1) ? stdscr : msv_get_win(split_id);
+    WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, TRUE); // неблокирующий ввод
@@ -374,23 +385,23 @@ int msv_menu_step(MsvMenu **ppCurrent, int split_id)
 		werase(w);
 		box(w, 0, 0);
 		mvwprintw(w, 0, 2, " %s ", current->title);
-        // msv_io_clear(split_id);
-        msv_io_print_at(split_id, 0, 1, "Menu: %s", current->title);
+        // mylib_io_clear(split_id);
+        mylib_io_print_at(split_id, 0, 1, "Menu: %s", current->title);
     }
 
     int idx = 0;
-    for (MsvMenuItem* it = current->items; it; it = it->next, idx++) {
+    for (MyLibMenuItem* it = current->items; it; it = it->next, idx++) {
         if (idx == choice) wattron(w, A_REVERSE);
 
         if (split_id == -1) {
             switch (it->type) {
-                case MSV_MENU_ITEM_CHECKBOX:
+                case MYLIB_MENU_ITEM_CHECKBOX:
                     mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
                     break;
-                case MSV_MENU_ITEM_INT:
+                case MYLIB_MENU_ITEM_INT:
                     mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
                     break;
-                case MSV_MENU_ITEM_STRING:
+                case MYLIB_MENU_ITEM_STRING:
                     mvprintw(idx+2, 2, "%s: %s", it->title,
                              it->data.strValue?it->data.strValue:"");
                     break;
@@ -400,20 +411,20 @@ int msv_menu_step(MsvMenu **ppCurrent, int split_id)
             }
         } else {
             switch (it->type) {
-                case MSV_MENU_ITEM_CHECKBOX:
-                    msv_io_print_at(split_id, idx+2, 2, "[%c] %s",
+                case MYLIB_MENU_ITEM_CHECKBOX:
+                    mylib_io_print_at(split_id, idx+2, 2, "[%c] %s",
                                     it->data.boolValue?'X':' ', it->title);
                     break;
-                case MSV_MENU_ITEM_INT:
-                    msv_io_print_at(split_id, idx+2, 2, "%s: %d",
+                case MYLIB_MENU_ITEM_INT:
+                    mylib_io_print_at(split_id, idx+2, 2, "%s: %d",
                                     it->title, it->data.intValue);
                     break;
-                case MSV_MENU_ITEM_STRING:
-                    msv_io_print_at(split_id, idx+2, 2, "%s: %s",
+                case MYLIB_MENU_ITEM_STRING:
+                    mylib_io_print_at(split_id, idx+2, 2, "%s: %s",
                                     it->title, it->data.strValue?it->data.strValue:"");
                     break;
                 default:
-                    msv_io_print_at(split_id, idx+2, 2, "%s", it->title);
+                    mylib_io_print_at(split_id, idx+2, 2, "%s", it->title);
                     break;
             }
         }
@@ -427,7 +438,7 @@ int msv_menu_step(MsvMenu **ppCurrent, int split_id)
     if (ch == ERR) return 0; // нет ввода
 
     int itemCount = 0;
-    for (MsvMenuItem* it = current->items; it; it = it->next) itemCount++;
+    for (MyLibMenuItem* it = current->items; it; it = it->next) itemCount++;
 
     switch (ch) {
         case KEY_UP: case 'k':
@@ -439,21 +450,23 @@ int msv_menu_step(MsvMenu **ppCurrent, int split_id)
         case 10: case ' ': // Enter/Space
         {
             int i=0;
-            for (MsvMenuItem* it=current->items; it; it=it->next,i++) {
+            for (MyLibMenuItem* it=current->items; it; it=it->next,i++) {
                 if (i==choice) {
-                    if (it->id == MSV_MENU_RET_BTN_QUIT) return 1;
-                    if (it->id == MSV_MENU_RET_BTN_START) return 2;
-                    if (it->id == MSV_MENU_RET_BTN_BACK && current->parent) {
+                    if (it->id == MYLIB_MENU_RET_BTN_QUIT)
+						return 1;
+                    if (it->id == MYLIB_MENU_RET_BTN_START)
+						return 2;
+                    if (it->id == MYLIB_MENU_RET_BTN_BACK && current->parent) {
                         *ppCurrent = current->parent;
                         choice = 0;
                         return 0;
                     }
-                    if (it->type == MSV_MENU_ITEM_SUBMENU) {
+                    if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
                         *ppCurrent = it->data.submenu;
                         choice = 0;
                         return 0;
                     }
-                    if (it->type == MSV_MENU_ITEM_CHECKBOX)
+                    if (it->type == MYLIB_MENU_ITEM_CHECKBOX)
                         it->data.boolValue = !it->data.boolValue;
                 }
             }

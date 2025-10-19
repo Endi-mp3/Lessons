@@ -1,38 +1,48 @@
-# Final executable name
-TARGET = termit_app
+# ==== Project settings ====
+TARGET   := termit_app
+BUILDDIR ?= .build
+OBJDIR   := $(BUILDDIR)/obj
+TGTDIR   := $(BUILDDIR)
 
-# Compiler and flags
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
-LDFLAGS = $(shell pkg-config --libs ncurses)
-INCLUDE = -I/opt/homebrew/opt/ncurses/include
+# ==== Compiler and flags ====
+CC      := gcc
+CFLAGS  := -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
+LDFLAGS := $(shell pkg-config --libs ncurses)
+INCLUDE := -I/opt/homebrew/opt/ncurses/include -ImyLib
 
+# ==== Sources ====
+# Все .c из корня и myLib/
+SRCS := $(wildcard *.c) $(wildcard myLib/*.c)
 
-# Source and header files
-SRCS = msv_menu.c main.c msv_cellular.c msv_console.c msv_io.c msv_splitview.c msv_stat_info.c
-HDRS = msv_menu.h msv_menu_types.h msv_cellular.h msv_console.h msv_io.h msv_splitview.h msv_stat_info.h
+# ==== Headers (для зависимостей) ====
+HDRS := $(wildcard myLib/*.h)
 
-# Object files
-OBJS = $(SRCS:.c=.o)
+# ==== Object files (сохраняем структуру каталогов) ====
+OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 
-# Default target
-all: $(TARGET)
+# ==== Default target ====
+all: $(TGTDIR)/$(TARGET)
 
-# Link object files into final executable
-$(TARGET): $(OBJS)
+# ==== Link final binary ====
+$(TGTDIR)/$(TARGET): $(OBJS) | $(TGTDIR)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-# Compile source files into object files
-%.o: %.c $(HDRS)
-	$(CC) $(CFLAGS) -c $< -o $@  $(LDFLAGS)
+# ==== Compile source files ====
+$(OBJDIR)/%.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
-# Run the program
-test: $(TARGET)
-	./$(TARGET)
-# Clean build artifacts
+# ==== Ensure build directories exist ====
+$(TGTDIR):
+	mkdir -p $(TGTDIR)
+
+# ==== Run the program ====
+test: $(TGTDIR)/$(TARGET)
+	./$<
+
+# ==== Clean build artifacts ====
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(BUILDDIR)
 
-# Mark targets that aren't actual files
-.PHONY: all clean
+.PHONY: all clean test
 

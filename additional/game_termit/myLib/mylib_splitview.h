@@ -8,19 +8,19 @@ extern "C" {
 #endif
 
 typedef enum {
-    MSV_SPLIT_HORIZONTAL = 0,  // horizontal line; splits top/bottom
-    MSV_SPLIT_VERTICAL   = 1   // vertical line; splits left/right
-} msv_split_dir_t;
+    MYLIB_SV_DIR_HORIZONTAL = 0,  // horizontal line; splits top/bottom
+    MYLIB_SV_DIR_VERTICAL   = 1   // vertical line; splits left/right
+} mylib_sv_split_dir_t;
 
 typedef struct {
     int x;  // origin column inside terminal
     int y;  // origin row inside terminal
-} msv_point_t;
+} mylib_sv_point_t;
 
 typedef struct {
     int w;  // width in columns
     int h;  // height in rows
-} msv_size_t;
+} mylib_sv_size_t;
 
 /**
  * Initialize root split tree covering the entire terminal screen.
@@ -28,12 +28,12 @@ typedef struct {
  * Must be called after initscr().
  * Returns 0 on success, -1 on failure.
  */
-int msv_init(void);
+int mylib_sv_init(void);
 
 /**
  * Shutdown split system and destroy all windows.
  */
-void msv_shutdown(void);
+void mylib_sv_shutdown(void);
 
 /**
  * Create a split of the region identified by 'parent_id' into two child windows.
@@ -46,37 +46,37 @@ void msv_shutdown(void);
  * - Horizontal: top gets roughly half, bottom gets remainder.
  * - Both children get borders; separator rendered with ACS lines.
  */
-int msv_create_split(int parent_id, msv_split_dir_t dir);
+int mylib_sv_create_split(int parent_id, mylib_sv_split_dir_t dir);
 
 /**
  * Clear the content area (inside the border) of the window by ID.
  * Does not remove the border or the split lines.
  * Returns 0 on success, -1 if ID invalid.
  */
-int msv_clear_id(int id);
+int mylib_sv_clear_id(int id);
 
 /**
  * Get the origin (top-left) point of a window by ID.
  * Returns 0 on success, -1 if ID invalid.
  */
-int msv_get_base_id(int id, msv_point_t *out);
+int mylib_sv_get_base_id(int id, mylib_sv_point_t *out);
 
 /**
  * Get the size (width, height) of a window by ID.
  * Returns 0 on success, -1 if ID invalid.
  */
-int msv_get_size_id(int id, msv_size_t *out);
+int mylib_sv_get_size_id(int id, mylib_sv_size_t *out);
 
 /**
  * Retrieve the ncurses WINDOW* for a given split ID (read-only use).
  * Returns NULL if ID invalid.
  */
-WINDOW* msv_get_win(int id);
+WINDOW* mylib_sv_get_win(int id);
 
 /**
  * Redraw borders for all windows and separators.
  */
-void msv_redraw_all(void);
+void mylib_sv_redraw_all(void);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
-// msv_splitview.c — split manager with bordered windows and separators
-#include "msv_splitview.h"
+// mylib_sv_splitview.c — split manager with bordered windows and separators
+#include "mylib_splitview.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,10 +12,10 @@ typedef struct {
     int parent;     // -1 if root
     int child_a;    // first child id or -1
     int child_b;    // second child id or -1
-    msv_split_dir_t dir; // direction of split that produced children (valid if has children)
-} msv_node_t;
+    mylib_sv_split_dir_t dir; // direction of split that produced children (valid if has children)
+} mylib_sv_node_t;
 
-static msv_node_t nodes[MSV_MAX_NODES];
+static mylib_sv_node_t nodes[MSV_MAX_NODES];
 static int root_id = -1;
 
 static int alloc_node(void) {
@@ -26,7 +26,7 @@ static int alloc_node(void) {
             nodes[i].child_a = -1;
             nodes[i].child_b = -1;
             nodes[i].parent = -1;
-            nodes[i].dir = MSV_SPLIT_VERTICAL;
+            nodes[i].dir = MYLIB_SV_DIR_VERTICAL;
             return i;
         }
     }
@@ -48,7 +48,8 @@ static WINDOW* create_window_rect(int y, int x, int h, int w) {
     return win;
 }
 
-int msv_init(void) {
+int mylib_sv_init(void)
+{
     memset(nodes, 0, sizeof(nodes));
 
     int term_h, term_w;
@@ -67,7 +68,8 @@ int msv_init(void) {
     return 0;
 }
 
-void msv_shutdown(void) {
+void mylib_sv_shutdown(void)
+{
     for (int i = 0; i < MSV_MAX_NODES; i++) {
         if (nodes[i].used) {
             if (nodes[i].win) {
@@ -83,7 +85,8 @@ static int is_valid(int id) {
     return (id >= 0 && id < MSV_MAX_NODES && nodes[id].used);
 }
 
-int msv_clear_id(int id) {
+int mylib_sv_clear_id(int id)
+{
     if (!is_valid(id)) return -1;
     WINDOW *w = nodes[id].win;
     if (!w) return -1;
@@ -99,28 +102,32 @@ int msv_clear_id(int id) {
     return 0;
 }
 
-int msv_get_base_id(int id, msv_point_t *out) {
+int mylib_sv_get_base_id(int id, mylib_sv_point_t *out)
+{
     if (!is_valid(id) || !out) return -1;
     out->x = nodes[id].x;
     out->y = nodes[id].y;
     return 0;
 }
 
-int msv_get_size_id(int id, msv_size_t *out) {
+int mylib_sv_get_size_id(int id, mylib_sv_size_t *out)
+{
     if (!is_valid(id) || !out) return -1;
     out->w = nodes[id].w;
     out->h = nodes[id].h;
     return 0;
 }
 
-WINDOW* msv_get_win(int id) {
+WINDOW* mylib_sv_get_win(int id)
+{
     if (!is_valid(id)) return NULL;
     return nodes[id].win;
 }
 
-int msv_create_split(int parent_id, msv_split_dir_t dir) {
+int mylib_sv_create_split(int parent_id, mylib_sv_split_dir_t dir)
+{
     if (!is_valid(parent_id)) return -1;
-    msv_node_t *p = &nodes[parent_id];
+    mylib_sv_node_t *p = &nodes[parent_id];
 
     // Cannot split if already has children
     if (p->child_a != -1 || p->child_b != -1) return -1;
@@ -134,7 +141,7 @@ int msv_create_split(int parent_id, msv_split_dir_t dir) {
 
     int x = p->x, y = p->y, w = p->w, h = p->h;
 
-    if (dir == MSV_SPLIT_VERTICAL) {
+    if (dir == MYLIB_SV_DIR_VERTICAL) {
         // left/right; add a vertical separator column
         int left_w = w / 2;
         int sep_w = 1;
@@ -190,7 +197,8 @@ int msv_create_split(int parent_id, msv_split_dir_t dir) {
     return b_id;
 }
 
-void msv_redraw_all(void) {
+void mylib_sv_redraw_all(void)
+{
     // Redraw borders for all nodes
     for (int i = 0; i < MSV_MAX_NODES; i++) {
         if (nodes[i].used && nodes[i].win) {
@@ -201,10 +209,10 @@ void msv_redraw_all(void) {
     // Redraw separators by re-walking parent-child splits
     for (int i = 0; i < MSV_MAX_NODES; i++) {
         if (!nodes[i].used) continue;
-        msv_node_t *p = &nodes[i];
+        mylib_sv_node_t *p = &nodes[i];
         if (p->child_a != -1 && p->child_b != -1) {
             int x = p->x, y = p->y, w = p->w, h = p->h;
-            if (p->dir == MSV_SPLIT_VERTICAL) {
+            if (p->dir == MYLIB_SV_DIR_VERTICAL) {
                 int left_w = nodes[p->child_a].w;
                 for (int r = y; r < y + h; r++) mvaddch(r, x + left_w, ACS_VLINE);
             } else {

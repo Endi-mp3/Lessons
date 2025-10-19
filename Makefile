@@ -1,10 +1,13 @@
-BUILDDIR:=.build
+BUILDDIR:= .build
 
 prep:
 	mkdir -p $(BUILDDIR)
 
 fibonacci: prep
 	gcc additional/fibonacci/fib.c -o $(BUILDDIR)/fib
+
+game:
+	cd additional/game_termit && make
 
 fibonacci_recursive: prep
 	gcc additional/fibonacci/recursive_fib.c -o $(BUILDDIR)/fib_recursive

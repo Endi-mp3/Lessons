@@ -1,16 +1,54 @@
 #include <unistd.h>
-#include "msv_menu.h"
 #include <stdio.h>
-#include "msv_splitview.h"
-#include "msv_stat_info.h"
-#include "msv_cellular.h"
 #include <ncurses.h>
 #include <string.h>
+#include "mylib_menu.h"
+#include "mylib_splitview.h"
+#include "mylib_stat_info.h"
+#include "mylib_game_field.h"
+#include "mylib_console.h"
 
-static const char* get_population(void) { return "256"; }
-static const char* get_alive(void)      { return "128"; }
-#include <ncurses.h>
-#include <stdlib.h>
+typedef struct
+{
+    int cellular_id;
+    int stats_id;
+    int console_id;
+} GameScreen;
+
+bool running = true;
+
+void on_command_cb(const char *cmd)
+{
+    if (!cmd || !*cmd) return;
+
+    if (strcmp(cmd, "quit") == 0) {
+        mylib_cli_write("Exiting...");
+        running = false;
+        return;
+    }
+
+    if (strcmp(cmd, "help") == 0) {
+        mylib_cli_write("Commands:");
+        mylib_cli_write("  quit           - exit program");
+        mylib_cli_write("  menu <name>    - switch menu (main/settings/debug)");
+        mylib_cli_write("  help           - show this help");
+        return;
+    }
+
+    mylib_cli_write("Unknown command. Type 'help' for list.");
+}
+
+GameScreen setup_game_screen(void)
+{
+    GameScreen gs = { -1, -1, -1 };
+    if (mylib_sv_init() != 0) {
+        return gs;
+    }
+	gs.cellular_id = 0;
+	gs.stats_id = mylib_sv_create_split(0, MYLIB_SV_DIR_VERTICAL);
+	gs.console_id = mylib_sv_create_split(gs.stats_id, MYLIB_SV_DIR_HORIZONTAL);
+    return gs;
+}
 
 int on_hello(void* __attribute((unused))__pv)
 {
@@ -18,54 +56,38 @@ int on_hello(void* __attribute((unused))__pv)
     return 0;
 }
 
-int main()
+int main(void)
 {
     initscr();
     cbreak();
     noecho();
-    curs_set(0);
     keypad(stdscr, TRUE);
+    curs_set(0);
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);
-    init_pair(3, COLOR_RED, COLOR_BLACK);
 
+    GameScreen gs = setup_game_screen();
 
-	MsvMenu *menu = msv_menu_create("Main Menu");
-	msv_menu_create_start_button(menu, "Start");
+    // инициализация модулей
+    mylib_gmfld_init(gs.cellular_id, 32, 32);
+    mylib_stat_init(gs.stats_id);
+    mylib_cli_init(gs.console_id);
 
-	int result = msv_menu_show(menu, -1);
+    MyLibMenu *menu = mylib_menu_create("Main");
+    mylib_menu_create_start_button(menu, "Start");
+    mylib_menu_create_exit_button(menu, "Quit");
+    MyLibMenu *current_menu = menu;
 
-    msv_init();
+    while (running) {
+        mylib_gmfld_step(gs.cellular_id);
+        mylib_stat_step(gs.stats_id);
+        mylib_cli_step(gs.console_id, on_command_cb);
 
-    int right = msv_create_split(0, MSV_SPLIT_VERTICAL);
-    int bot = msv_create_split(right, MSV_SPLIT_HORIZONTAL);
+        doupdate();
+        usleep(16000);
+    }
 
-    // stats
-    msv_stat_init(right);
-    msv_stat_add("Population", get_population);
-    msv_stat_add("Alive", get_alive);
-	msv_stat_draw();
-	msv_menu_show(menu, bot);
-    // cellular grid on left
-    msv_cell_init(0, 10, 5);
-    msv_cell_set(2, 2, 1, 'O', 2);
-    msv_cell_set(3, 2, 1, 'X', 3);
-	msv_cell_step(0);
-	bool running = true;
-	while(running) {
-		msv_cell_step(0);
-		msv_stat_step(right);
-	    int st1 = msv_menu_step(&menu, bot);
-		if (st1 == 1) running = false;
-		if (st1 == 2) running = false;
-
-		doupdate();
-		usleep(16000);
-	}
-
-    getch();
-    msv_shutdown();
+    mylib_sv_shutdown();
     endwin();
     return 0;
 }
+
