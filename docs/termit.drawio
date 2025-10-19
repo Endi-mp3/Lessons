@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:144.0) Gecko/20100101 Firefox/144.0" version="28.2.7">
   <diagram name="Страница — 1" id="uSIheWvpuzU60DOnTNbo">
-    <mxGraphModel dx="1472" dy="691" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2409" dy="1131" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -25,16 +25,16 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="-PnLcSwllOI2cET67IQR-12" value="Организатор" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcd28;gradientColor=#ffa500;strokeColor=#d79b00;verticalAlign=top;" parent="1" vertex="1">
-          <mxGeometry x="440" y="460" width="140" height="230" as="geometry" />
+          <mxGeometry x="440" y="460" width="140" height="260" as="geometry" />
         </mxCell>
         <mxCell id="-PnLcSwllOI2cET67IQR-1" value="Чтение из файла настроек" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
           <mxGeometry x="950" y="1225" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="-PnLcSwllOI2cET67IQR-3" value="Вывод на экран настроек" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;gradientColor=#b3b3b3;" parent="1" vertex="1">
-          <mxGeometry x="470" y="490" width="240" height="50" as="geometry" />
+        <mxCell id="-PnLcSwllOI2cET67IQR-3" value="Вывод на экран настроек" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" parent="1" vertex="1">
+          <mxGeometry x="470" y="486" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="-PnLcSwllOI2cET67IQR-6" value="Вывод на экран поля для ввода" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" parent="1" vertex="1">
-          <mxGeometry x="470" y="552.5" width="240" height="50" as="geometry" />
+        <mxCell id="-PnLcSwllOI2cET67IQR-6" value="Вывод на экран меню" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;gradientColor=#b3b3b3;" parent="1" vertex="1">
+          <mxGeometry x="270" y="547" width="240" height="50" as="geometry" />
         </mxCell>
         <mxCell id="-PnLcSwllOI2cET67IQR-8" value="Создание API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;gradientColor=#ea6b66;" parent="1" vertex="1">
           <mxGeometry x="790" y="840" width="240" height="50" as="geometry" />
@@ -79,7 +79,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="-PnLcSwllOI2cET67IQR-27" value="Создание API для пользователя" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" parent="1" vertex="1">
-          <mxGeometry x="470" y="620" width="240" height="50" as="geometry" />
+          <mxGeometry x="470" y="602" width="240" height="50" as="geometry" />
         </mxCell>
         <mxCell id="1wyGqIaiWbHrIPVH7k1F-5" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=12;shape=flexArrow;startArrow=block;" edge="1" parent="1" source="-PnLcSwllOI2cET67IQR-28" target="-PnLcSwllOI2cET67IQR-19">
           <mxGeometry relative="1" as="geometry" />
@@ -104,6 +104,9 @@
         </mxCell>
         <mxCell id="-PnLcSwllOI2cET67IQR-38" value="Создание API для окошек&amp;nbsp;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;gradientColor=#b3b3b3;" parent="1" vertex="1">
           <mxGeometry x="10" y="1050" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="1wyGqIaiWbHrIPVH7k1F-6" value="API меню" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;gradientColor=#b3b3b3;" vertex="1" parent="1">
+          <mxGeometry x="270" y="659" width="240" height="50" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
