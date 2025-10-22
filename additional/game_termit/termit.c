@@ -166,7 +166,8 @@ Termit_t* trmt_createp(const char* path2cfg)
     return trmt;
 }
 
-void trmt_delete(Termit_t* trmt) {
+void trmt_delete(Termit_t* trmt)
+{
     if (!trmt)
 		return;
     if (trmt->trmt_game)
@@ -176,7 +177,8 @@ void trmt_delete(Termit_t* trmt) {
     free(trmt);
 }
 
-const char* trmt_get_next_cmd(Termit_t* trmt) {
+const char* trmt_get_next_cmd(Termit_t* trmt)
+{
     if (!trmt || !trmt->trmt_game)
 		return NULL;
 
@@ -219,3 +221,28 @@ int trmt_reset(Termit_t* trmt)
     trmt->trmt_game->cur_cmd_idx = 0;
     return 0;
 }
+
+int trmt_set_cords(Termit_t* trmt, int x, int y)
+{
+    if (!trmt || !trmt->trmt_game)
+		return -1;
+	trmt->trmt_game->x = x;
+	trmt->trmt_game->y = y;
+	return 0;
+}
+int trmt_set_color(Termit_t* trmt, TermitGameColor_t color)
+{
+    if (!trmt || !trmt->trmt_game)
+		return -1;
+	trmt->trmt_game->color = color;
+	return 0;
+}
+
+TermitGameState_t trmt_get_state(Termit_t* trmt)
+{
+    if (!trmt || !trmt->trmt_game)
+		return trmt_state_get_state_error;
+
+	return trmt->trmt_game->state;
+}
+

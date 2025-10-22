@@ -1,12 +1,32 @@
 #pragma once
 
 
+typedef enum
+{
+	trmt_color_red = 0, // TODO set colors from ncurses
+	trmt_color_blue,
+	trmt_color_yellow,
+	trmt_color_green
+		// TODO create at least 16 colors
+} TermitGameColor_t;
+
+typedef enum
+{
+	trmt_state_get_state_error = -2,
+	trmt_state_inactive = -1,
+	trmt_state_stepDone = 0,
+	trmt_state_stepWait,
+	trmt_state_stepNow
+} TermitGameState_t;
+
 typedef struct TermitStructTemp
 {
 	int x;
 	int y;
 	////
 	int cur_cmd_idx;
+	TermitGameColot_t color; // set by random (default) or updated by API
+	TermitGameState_t state;
 	////
 	// parent?
 } TermitGame_t;
@@ -64,3 +84,9 @@ int trmt_get_game_info(Termit_t* trmt, TermitGame_t** gameinfoPtr);
  *			-1 - fail
  */
 int trmt_get_cords(Termit_t* trmt, int *x, int *y);
+
+int trmt_set_cords(Termit_t* trmt, int x, int y);
+int trmt_set_color(Termit_t* trmt, TermitGameColor_t color);
+
+TermitGameState_t trmt_get_state(Termit_t* trmt);
+
