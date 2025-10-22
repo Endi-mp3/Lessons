@@ -16,15 +16,6 @@ MyLibMenu *mylib_menu_create(const char* title)
     menu->title = strdup(title);
     menu->items = NULL;
     menu->parent = NULL;
-
-    // default Quit button
-    MyLibMenuItem* exitBtn = calloc(1, sizeof(MyLibMenuItem));
-    exitBtn->type = MYLIB_MENU_ITEM_BUTTON;
-    exitBtn->title = strdup("Quit");
-    exitBtn->id = MYLIB_MENU_RET_BTN_QUIT;
-    exitBtn->next = NULL;
-    menu->items = exitBtn;
-
     return menu;
 }
 

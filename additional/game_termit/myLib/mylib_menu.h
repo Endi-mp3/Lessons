@@ -27,7 +27,8 @@ typedef enum {
     MYLIB_MENU_ITEM_STRING
 } mylib_menu_item_type_t;
 
-struct MyLibMenuItem {
+struct MyLibMenuItem
+{
     mylib_menu_item_type_t type;
     char *title;
     int id;
@@ -41,7 +42,8 @@ struct MyLibMenuItem {
     MyLibMenuItem *next;
 };
 
-struct MyLibMenu {
+struct MyLibMenu
+{
     char *title;
     MyLibMenuItem *items;
     MyLibMenu *parent;

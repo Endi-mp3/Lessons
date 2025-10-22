@@ -65,6 +65,19 @@ int main(void)
     curs_set(0);
     start_color();
 
+    MyLibMenu *menu = mylib_menu_create("Main");
+    MyLibMenu *menuSettings = mylib_menu_create_submenu(menu, "Settings");
+	mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true);
+	mylib_menu_create_int_config(menuSettings, "Price of your ass? $", 5);
+	
+    mylib_menu_create_start_button(menu, "Start");
+    mylib_menu_create_exit_button(menu, "Quit");
+    MyLibMenu *current_menu = menu;
+	if (mylib_menu_show(menu, -1) < 0) {
+		endwin();
+		return 0;
+	}
+
     GameScreen gs = setup_game_screen();
 
     // инициализация модулей
@@ -72,10 +85,6 @@ int main(void)
     mylib_stat_init(gs.stats_id);
     mylib_cli_init(gs.console_id);
 
-    MyLibMenu *menu = mylib_menu_create("Main");
-    mylib_menu_create_start_button(menu, "Start");
-    mylib_menu_create_exit_button(menu, "Quit");
-    MyLibMenu *current_menu = menu;
 
     while (running) {
         mylib_gmfld_step(gs.cellular_id);
@@ -88,6 +97,4 @@ int main(void)
 
     mylib_sv_shutdown();
     endwin();
-    return 0;
-}
-
+    return 0;}
