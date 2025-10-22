@@ -25,13 +25,14 @@ typedef struct TermitStructTemp
 	int y;
 	////
 	int cur_cmd_idx;
-	TermitGameColot_t color; // set by random (default) or updated by API
+	TermitGameColor_t color; // set by random (default) or updated by API
 	TermitGameState_t state;
 	////
 	// parent?
 } TermitGame_t;
 
 typedef struct TermitCmdListItem
+{
 	char* cmd;
 	size_t len;
 	struct TermitCmdListItem* next;
