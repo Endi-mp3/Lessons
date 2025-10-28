@@ -10,10 +10,8 @@
 
 #define STR_A_MAX_LEN (4096 + 1)
 #define STR_B_MAX_LEN (2048 + 1)
-#define STR_RES_MAX_LEN (4096 + 2)
+#define STR_RES_MAX_LEN (4096 + 3)
 
-char a[STR_A_MAX_LEN];
-char b[STR_B_MAX_LEN];
 
 bool readFile(const char* fpath, uint8_t* out, size_t maxOutLen)
 {
@@ -36,50 +34,59 @@ int main(int argc, const char* argv[])
 	if (argc < 4)
 		return -1;
 
+	char a[STR_A_MAX_LEN];
+	char b[STR_B_MAX_LEN];
+    char RES[STR_RES_MAX_LEN];
+
 	if (!readFile(argv[1], a, STR_A_MAX_LEN))
 		return -2;
 
 	if (!readFile(argv[2], b, STR_B_MAX_LEN))
 		return -3;
 
-    int i;
-    int carry;
-    int dA;
-    int dB;
-    int tmpRes;
-    char RES[STR_RES_MAX_LEN];
-printf ("sum = %s\n", RES );
-    for (i = 0, carry = 0 ; i < strlen(b); i++) {
-        dA = a[strlen(a)-1 -i] -0x30;
-        dB = b[strlen(b)-1 -i] -0x30;
+    uint16_t i;
+    uint8_t carry;
+    uint8_t dA;
+    uint8_t dB;
+    uint8_t tmpRes;
+	memset(RES, 0, STR_RES_MAX_LEN);
+	uint16_t lenA = strlen(a);
+	uint16_t lenB = strlen(b);
+	const uint16_t lenRes = STR_RES_MAX_LEN - 2;
+	RES[lenRes] = '\n';
+
+	if (a[lenA - 1] == '\n')
+		lenA--;
+
+	if (b[lenB - 1] == '\n')
+		lenB--;
+
+    for (i = 0, carry = 0 ; i < lenB; i++) {
+        dA = a[lenA - 1 - i] - 0x30;
+        dB = b[lenB - 1 - i] - 0x30;
         tmpRes = dA + dB + carry;
-        RES[STR_RES_MAX_LEN -1 -i] = tmpRes % 10;
+        RES[lenRes - 1 - i] = tmpRes % 10 + 0x30;
         carry = tmpRes / 10;
+    }
 
-    } 
-printf ("sum = %s\n", RES );
-
-    for (i , carry  ; i < strlen(a); i++) {
-        dA = a[strlen(a)-1 -i] -0x30;
+    for (; i < lenA; i++) {
+        dA = a[lenA - 1 - i] - 0x30;
         tmpRes = dA + carry;
-        RES[STR_RES_MAX_LEN -1 -i] = tmpRes % 10;
+        RES[lenRes - 1 - i] = tmpRes % 10 + '0';
         carry = tmpRes / 10;
+    }
 
-    } 
-
-
-        RES[STR_RES_MAX_LEN -1 -i] = carry;
-printf ("sum = %s\n", RES );
-
-
-    int fd = open(argv[3], O_RDWR | O_CREAT | O_APPEND);
-	if (fd == -1)
+	RES[lenRes - 1 - i] = carry + 0x30;
+	uint8_t *ptrRes = &RES[lenRes - 1 - i];
+    int fd = open(argv[3], O_RDWR | O_CREAT | O_TRUNC, 0644);
+	if (fd == -1) {
+		fprintf(stderr, "file open for result failed %s\n", argv[3]);
 		return -1;
+	}
 
-	if (write(fd, RES, strlen(STR_RES_MAX_LEN)) < 0) {
+	if (write(fd, ptrRes, strlen(ptrRes)) < 0) {
 		fprintf(stderr, "file write failed\n");
+		return -4;
 	}
-	else {
-		fprintf(stdout, "File written successfully\n");
-	}
+	return 0;
 }

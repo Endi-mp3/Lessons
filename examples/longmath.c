@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <sys/errno.h>
 
-
 int readFile(const char* fpath, uint8_t* out, uint16_t read_bytes)
 {
 	int fd = open(fpath, O_RDONLY);
@@ -20,7 +19,6 @@ int readFile(const char* fpath, uint8_t* out, uint16_t read_bytes)
 	close(fd);
 	return r;
 }
-
 
 #define strA_LenMax (4097u)
 #define strB_LenMax (2049u)
@@ -44,16 +42,16 @@ int main(int argc, const char* argv[])
 	if (argc < 4)
 		goto error_free_A_B_RES;
 
-	if (readFile(argv[1], strA, 4096))
+	if (readFile(argv[1], strA, strA_LenMax))
 		goto error_free_A_B_RES;
 
-	if (readFile(argv[2], strB, 2048))
+	if (readFile(argv[2], strB, strB_LenMax))
 		goto error_free_A_B_RES;
 
 	memset(strRes, 0, strRes_LenMax + 1);
 
-	uint16_t strA_Len = strnlen(strA, 4096);
-	uint16_t strB_Len = strnlen(strB, 2048);
+	uint16_t strA_Len = strnlen(strA, strA_LenMax);
+	uint16_t strB_Len = strnlen(strB, strB_LenMax);
 	int i;
 
 	strA_Len = (strA[strA_Len - 1] == '\n') ? strA_Len - 1 : strA_Len;
@@ -79,14 +77,9 @@ int main(int argc, const char* argv[])
 	}
 
 	if (carry)
-		strRes[strRes_LenMax - 1 - i] = '1';
+		strRes[strRes_LenMax - 1 - i++] = '1';
 
-
-	uint8_t* ptr = strRes;
-	while( *ptr == 0 && ptr != strRes + 4096) { ptr++; } // search for beginning
-	if (ptr == strRes + 4096)
-		goto error_free_A_B_RES;
-
+	uint8_t* ptr = &strRes[strRes_LenMax - 1 - i];
 	int fd = open(argv[3], O_RDWR | O_CREAT | O_TRUNC, 0644);
 	if (fd == -1) {
 		fprintf(stderr, "file write failed\n");
@@ -98,6 +91,7 @@ int main(int argc, const char* argv[])
 		goto error_free_A_B_RES;
 	}
 
+	/*
 	printf("  A:");
 	for(int i = 0; i < strlen(ptr) - strA_Len; i++)
 		printf("0");
@@ -118,6 +112,7 @@ int main(int argc, const char* argv[])
 
 	printf("\n");
 
+	*/
 	return 0;
 
 error_free_A_B_RES:
