@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdlib.h>
 
 typedef enum
 {
@@ -23,11 +23,10 @@ typedef struct TermitStructTemp
 {
 	int x;
 	int y;
-	////
 	int cur_cmd_idx;
 	TermitGameColor_t color; // set by random (default) or updated by API
 	TermitGameState_t state;
-	////
+	int live;
 	// parent?
 } TermitGame_t;
 
@@ -88,6 +87,11 @@ int trmt_get_cords(Termit_t* trmt, int *x, int *y);
 
 int trmt_set_cords(Termit_t* trmt, int x, int y);
 int trmt_set_color(Termit_t* trmt, TermitGameColor_t color);
+int trmt_set_live(Termit_t* trmt, int live);
 
 TermitGameState_t trmt_get_state(Termit_t* trmt);
+
+int trmt_game_new(Termit_t *trmt);
+int trmt_game_stop(Termit_t *trmt);
+int trmt_game_reset(Termit_t *trmt);
 

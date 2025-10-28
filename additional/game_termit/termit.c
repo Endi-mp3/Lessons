@@ -246,3 +246,44 @@ TermitGameState_t trmt_get_state(Termit_t* trmt)
 	return trmt->trmt_game->state;
 }
 
+int trmt_game_new(Termit_t *trmt)
+{
+	if (!trmt)
+		return -1;
+
+	if (trmt->trmt_game)
+		return 1;
+
+	trmt->trmt_game = (TermitGame_t*)malloc(sizeof(TermitGame_t));
+	memset(trmt->trmt_game, 0, sizeof(TermitGame_t));
+	trmt->trmt_game->color = trmt_color_red + rand() % 16;
+	return 0;
+}
+
+int trmt_game_stop(Termit_t *trmt)
+{
+	if (!trmt || !trmt->trmt_game)
+		return -1;
+
+	free(trmt->trmt_game);
+	trmt->trmt_game = NULL;
+	return 0;
+}
+
+int trmt_game_reset(Termit_t *trmt)
+{
+	if (!trmt || !trmt->trmt_game)
+		return -1;
+
+	memset(trmt->trmt_game, 0, sizeof(TermitGame_t));
+	trmt->trmt_game->color = trmt_color_red + rand() % 16;
+	return 0;
+}
+
+int trmt_set_live(Termit_t* trmt, int live)
+{
+	if (!trmt || !trmt->trmt_game)
+		return -1;
+	trmt->trmt_game->live = live;
+	return 0;
+}
