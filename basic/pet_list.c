@@ -7,13 +7,29 @@ struct ListEntity_s;
 typedef struct ListEntity_s ListEntity;
 typedef struct List_s List;
 
+// TODO: malloc can return NULL - add checks wherever needed
+// ----
+// TODO: 
+// ptr = malloc(s);
+
+// WRONG:
+// ptr = realloc(s*2); <--- realloc also may return NULL.  In this case, we overwrite variable PTR and lose old allocation
+
+// CORRECT:
+// newPtr = realloc(s*2);
+// if (newPtr)
+//    ptr = newPtr;
+// don't forget that ptr size is still the same if newPtr == NULL 
+
 struct ListEntity_s
 {   
     ListEntity* next;
     int age;
-//    int len;
-//    char name[0];
-    char name[64];
+    char* name; // TODO
+    //char name[64]; // OLD
+
+    //int len;      // TODO 2
+    //char name[0]; // TODO 2
 };
 
 struct List_s
