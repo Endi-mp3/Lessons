@@ -41,7 +41,15 @@ struct List_s
 void list_addEntity(List* lst, const char* name, int age)
 {
     ListEntity* ptrNewEntity = malloc(sizeof( ListEntity));
+    if (ptrNewEntity == NULL)
+        return;
     memset(ptrNewEntity, 0, sizeof(ListEntity));
+
+    ptrNewEntity->name = malloc(strlen(name) + 1);
+    if (ptrNewEntity->name = NULL){
+        free(ptrNewEntity);
+        return;
+    }
     if (lst->list == NULL) {
         lst->list = ptrNewEntity;
     }
@@ -73,6 +81,7 @@ void list_deleteEntity(List* lst, ListEntity* ent)
     ListEntity* ptr = lst->list;  
     if (ptr && ent == ptr) {
         lst->list = ptr->next;
+        free(ptr->name);
         free(ptr);
         lst->count--;
         return;        
@@ -87,12 +96,20 @@ void list_deleteEntity(List* lst, ListEntity* ent)
         return;
 
     ptr->next = ent->next;
+    free(ent->name);
     free(ent);
     lst->count--;
 }
 
 void list_editEntity(ListEntity* ent, const char*  new_name, int new_age)
 {
+    if (ent == NULL)
+        return;
+    char* newEnt = malloc(strlen(new_name) + 1);
+    if (newEnt = NULL)
+        return;
+    free(ent->name);
+    ent->name = newEnt;
     strcpy(ent->name, new_name);
     ent->age = new_age;
 }
@@ -113,6 +130,7 @@ void list_cleanup(List* lst)
     while (!ptrNext)
     {
         ptrNext = ptr->next;
+        free(ptr->name);
         free(ptr);
         ptr = ptrNext;
     }
