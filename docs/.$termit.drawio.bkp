@@ -67,8 +67,8 @@
         <mxCell id="3Pn6ggRXueh7MnnkqHdO-46" value="Пользователь" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" vertex="1" parent="3Pn6ggRXueh7MnnkqHdO-48">
           <mxGeometry x="180" y="187.5" width="560" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="3Pn6ggRXueh7MnnkqHdO-5" value="Библиотека UI модулей&lt;div&gt;&lt;br&gt;Отдельные модули? которые создаются как инстансы в других модулях.&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;verticalAlign=top;fontColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="370" y="400" width="160" height="455" as="geometry" />
+        <mxCell id="3Pn6ggRXueh7MnnkqHdO-5" value="Библиотека UI модулей&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;verticalAlign=top;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="370" y="500" width="160" height="355" as="geometry" />
         </mxCell>
         <mxCell id="-PnLcSwllOI2cET67IQR-31" value="Термит&lt;br&gt;Сущность связывающая лежащий в файле конфиг и отображаемое в памяти воплощение термита&lt;br&gt;Хранит текущее состояние во время игры" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;verticalAlign=top;fontColor=#000000;" parent="1" vertex="1">
           <mxGeometry x="990" y="1110" width="160" height="300" as="geometry" />
