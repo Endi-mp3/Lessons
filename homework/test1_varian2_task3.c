@@ -4,24 +4,24 @@
 
 int main(void){
 	int N;
-	printf ("Введите размер массива");
+	printf ("Введите размер массива\n");
 	scanf ("%d", &N);
 
 
 	int *mas1 = malloc (N * sizeof(int));
 	if (mas1 == 0){
-		printf ("Память не выделенна");
+		printf ("Память не выделенна\n");
 		return 1;
 	}
 
-	printf ("Заполните массив данными");
+	printf ("Заполните массив данными\n");
 	for (int i = 0;i < N; i++){
 		scanf ("%d", &mas1[i]);
 	}
 
 	int *mas2 = malloc (N * sizeof(int));
 	if (mas1 == 0){
-		printf ("Память не выделенна");
+		printf ("Память не выделенна\n");
 		return 1;
 	}
 
@@ -30,6 +30,7 @@ int main(void){
 	}
 	printf ("Второй масив получился\n");
 	for (int i = 0; i < N; i++){
-		printf ("%d", mas2[i]);
+		printf ("%d ", mas2[i]);
 	}
+	printf("\n");
 }
