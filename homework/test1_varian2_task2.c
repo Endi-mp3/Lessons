@@ -54,7 +54,7 @@ int print(struct fifo *f ){
 int main(void){
     char cmd[16];
     uint32_t Number;
-    printf ("comand\nadd-new num\nget-unistal\nprint-printing\nexit-wxit program\n");
+    printf ("comand\n'help' - help command\n'add' - new num\n'get' - dellet\n'print' - printing\n'exit' - exit proggram program\n");
 
     while (scanf("%15s", cmd) == 1) {
 		
@@ -67,15 +67,16 @@ int main(void){
             if (add(&ls_first, Number) < 0) {
                 printf("error\n");
             }
+            printf ("В очередь добавлен '%d'\n", Number);
         }
 
         else if (strcmp(cmd, "get") == 0) {
             if (get(&ls_first, &Number) < 0) {
                 printf("error\n");
             } else {
-                // Если нужно выводить извлечённый элемент:
-                // printf("%u\n", Number);
+        
             }
+            printf ("Из очереди удалён номер '%d'\n", Number);
         }
 
         else if (strcmp(cmd, "print") == 0) {
@@ -83,7 +84,13 @@ int main(void){
         }
 
         else if (strcmp(cmd, "exit") == 0) {
+            printf ("Вы вышли из программы");
             break;
+        }
+
+        else if (strcmp(cmd, "help") ==0) {
+            printf ("comand\n'help' - help command\n'add' - new num\n'get' - dellet\n'print' - printing\n'exit' - exit proggram program\n");
+
         }
     }
 
