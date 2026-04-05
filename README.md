@@ -5,10 +5,10 @@ Very basic C lessons and homework tasks.
 ## Git
 
 Create new local git in some project directory:
-    
+
     `git init`
 
-Add remote repository 
+Add remote repository
 
     `git remote add origin <git@somerepoaddress>`
 

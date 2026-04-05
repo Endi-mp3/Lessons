@@ -4,7 +4,7 @@
 
 Функция должна иметь прототип:
 
-  
+
 ```
 size_t serialize(uint8_t *out, void *structure, int type);
 ```
