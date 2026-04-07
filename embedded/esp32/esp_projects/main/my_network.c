@@ -1,38 +1,4 @@
-/* BSD non-blocking socket example
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "sys/socket.h"
-#include "netdb.h"
-#include "errno.h"
-#include "esp_system.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
-#include "protocol_examples_common.h"
-
-/**
- * @brief Indicates that the file descriptor represents an invalid (uninitialized or closed) socket
- *
- * Used in the TCP server structure `sock[]` which holds list of active clients we serve.
- */
-#define INVALID_SOCK (-1)
-
-/**
- * @brief Time in ms to yield to all tasks when a non-blocking socket would block
- *
- * Non-blocking socket operations are typically executed in a separate task validating
- * the socket status. Whenever the socket returns `EAGAIN` (idle status, i.e. would block)
- * we have to yield to all tasks to prevent lower priority tasks from starving.
- */
-#define YIELD_TO_ALL_MS 50
+#include "my_network.h"
 
 /**
  * @brief Utility to log socket errors
@@ -105,10 +71,9 @@ static int socket_send(const char *tag, const int sock, const char * data, const
     return len;
 }
 
-
 #ifdef CONFIG_EXAMPLE_TCP_CLIENT
 
-static void tcp_client_task(void *pvParameters)
+void tcp_client_task(void *pvParameters)
 {
     static const char *TAG = "nonblocking-socket-client";
     static const char *payload = "GET / HTTP/1.1\r\n\r\n";
@@ -227,7 +192,7 @@ static inline char* get_clients_address(struct sockaddr_storage *source_addr)
     return address_str;
 }
 
-static void tcp_server_task(void *pvParameters)
+void tcp_server_task(void *pvParameters)
 {
     static char rx_buffer[128];
     static const char *TAG = "nonblocking-socket-server";
@@ -375,27 +340,4 @@ error:
 }
 #endif  // CONFIG_EXAMPLE_TCP_SERVER
 
-void app_main(void)
-{
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    ESP_ERROR_CHECK(example_connect());
-
-#ifdef CONFIG_EXAMPLE_TCP_SERVER
-    SemaphoreHandle_t server_ready = xSemaphoreCreateBinary();
-    assert(server_ready);
-    xTaskCreate(tcp_server_task, "tcp_server", 4096, &server_ready, 5, NULL);
-    xSemaphoreTake(server_ready, portMAX_DELAY);
-    vSemaphoreDelete(server_ready);
-#endif // CONFIG_EXAMPLE_TCP_SERVER
-
-#ifdef CONFIG_EXAMPLE_TCP_CLIENT
-    xTaskCreate(tcp_client_task, "tcp_client", 4096, NULL, 5, NULL);
-#endif // CONFIG_EXAMPLE_TCP_CLIENT
-}
