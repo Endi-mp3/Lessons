@@ -6,8 +6,8 @@
 struct fifo
 {
 	uint32_t buff[MAX_ENT];
-	uint8_t idxReader;
-	uint8_t idxWriter;
+	uint64_t idxReader;
+	uint64_t idxWriter;
 }; 
 
 struct fifo ls_first = {{0}, 0, 0,};

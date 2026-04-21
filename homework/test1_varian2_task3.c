@@ -20,7 +20,7 @@ int main(void){
 	}
 
 	int *mas2 = malloc (N * sizeof(int));
-	if (mas1 == 0){
+	if (mas2 == 0){
 		printf ("Память не выделенна\n");
 		return 1;
 	}
@@ -33,4 +33,7 @@ int main(void){
 		printf ("%d ", mas2[i]);
 	}
 	printf("\n");
+	free(mas1);
+	free(mas2);
+	return 0;
 }
