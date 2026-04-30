@@ -3,12 +3,12 @@
 #include <stdlib.h>         // malloc, free
 #include <stdint.h>         // uint8_t, uint16_t
 #include <string.h>         // memcpy
-#include <unistd.h>         // close (Linux)
+#include <unistd.h>         // close (Linux), sleep
 #include <sys/socket.h>     // socket, connect, send, recv
 #include <netinet/in.h>     // struct sockaddr_in
 #include <arpa/inet.h>      // htons, htonl, inet_pton
 
-int port = 44003;
+int port = 44004;
 const char server_ip[] = "127.0.0.1";
 
 #pragma pack(push, 1)
@@ -16,6 +16,8 @@ struct Header
 {
     uint8_t cmd;
     uint16_t id;
+//	uint32_t pack_num; // 4
+//	uint32_t pack_max_count; // 255
 };
 #pragma pack(pop)
 
@@ -57,7 +59,7 @@ int handle_server()
         return 1;
     }
 
-	int max_con = 100;
+	int connections_left = 100;
 	do {
 		if (listen(sock, 1)) {
 			fprintf(stderr, "listen failed errno: %i\n", errno);
@@ -65,8 +67,6 @@ int handle_server()
 			free(packet);
 			return 1;
 		}
-		printf("Server listening...\n");
-
 		int client_socket = accept(sock, (struct sockaddr*)&serv_addr, (socklen_t*)&addrlen);
 		if (client_socket < -1) {
 			close(sock);
@@ -74,10 +74,18 @@ int handle_server()
 			return -1;
 		}
 
-		packet->header.id = max_con;
+		packet->header.id = connections_left;
+		packet->data[0] = 0xBA;
 		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
+		sleep(1);
+		packet->data[0] = 0xCB;
+		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
+		sleep(1);
+		packet->data[0] = 0xDA;
+		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
+		sleep(1);
 		close(client_socket);
-	} while (max_con--);
+	} while (connections_left--);
 	close(sock);
 	free(packet);
 	return 0;
@@ -104,27 +112,29 @@ int handle_clnt()
 
 	uint8_t buf[256] = { 0 };
 	ssize_t bytes_recv = -1;
-	bytes_recv = recv(sock, buf, 255, 0);
-	if (bytes_recv == 0) {
-		close(sock);
-		return -1;
-	} else if (bytes_recv == -1) {
-		close(sock);
-		return -2;
-	}
-	printf("Data: ");
-	for(int i = 0; i < bytes_recv; i++)
-		printf("%02x ", buf[i]);
-	printf("\n");
+	for(int j = 0; j < 3; j++) {
+		bytes_recv = recv(sock, buf, 255, 0);
+		if (bytes_recv == 0) {
+			close(sock);
+			return -1;
+		} else if (bytes_recv == -1) {
+			close(sock);
+			return -2;
+		}
+		printf("Full payload: ");
+		for(int i = 0; i < bytes_recv; i++)
+			printf("%02x ", buf[i]);
+		printf("\n");
 
-	struct Packet *pkt = (struct Packet *)buf;
-	printf("pkt->header.cmd = %x\n", pkt->header.cmd);
-	printf("pkt->id = 0x%x\n", pkt->header.id);
-	printf("pkt->len = %i\n", pkt->len);
-	printf("pkt->data: ");
-	for(int i = 0; i < pkt->len; i++)
-		printf("%02x ", pkt->data[i]);
-	printf("\n");
+		struct Packet *pkt = (struct Packet *)buf;
+		printf("pkt->header.cmd = %x\n", pkt->header.cmd);
+		printf("pkt->id = 0x%x\n", pkt->header.id);
+		printf("pkt->len = %i\n", pkt->len);
+		printf("pkt->data: ");
+		for(int i = 0; i < pkt->len; i++)
+			printf("%02x ", pkt->data[i]);
+		printf("\n");
+	}
 	return 0;
 }
 
@@ -134,14 +144,12 @@ int main(int argc, char* argv[])
     if (argc > 1) {
 		is_server = 1;
 	}
-	printf("argc = %i\n", argc);
-
 	if (is_server) {
-		printf("Running server\n");
+		printf("-------------------- Running server --------------------\n");
 		return handle_server();
 	}
 	else {
-		printf("Running clnt\n");
+		printf("-------------------- Running clnt --------------------\n");
 		return handle_clnt();
 	}
 }
