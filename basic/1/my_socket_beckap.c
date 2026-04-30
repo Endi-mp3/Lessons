@@ -86,16 +86,10 @@ int handle_server()
 		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
 		sleep(1);
 		close(client_socket);
-	}
-	
-	
-
-
-	while (connections_left--);
+	} while (connections_left--);
 	close(sock);
 	free(packet);
 	return 0;
-	
 }
 
 int handle_clnt()
@@ -116,46 +110,6 @@ int handle_clnt()
         close(sock);
         return 1;
     }
-
-
-
-	struct Packet *packet= malloc(sizeof(struct Packet) + 16);
-	packet->header.cmd = 0xA;
-	packet->header.id = 0xDEAD;
-	packet->len = 16;
-	for(int i = 0; i < packet->len; i++) packet->data[i] = i & 0xFF;
-
-	int connections_left = 100;
-	do {	
-		if (listen(sock, 1)) {
-			fprintf(stderr, "listen failed errno: %i\n", errno);
-			close(sock);
-			free(packet);
-			return 1;
-		}
-		int server_socket = accept(sock, (struct sockaddr*)&clnt_addr, (socklen_t*)&addrlen);
-		if (server_socket < -1) {
-			close(sock);
-			free(packet);
-			return -1;
-		}
-
-		packet->header.id = connections_left;
-		packet->data[0] = 0xBA;
-		send(server_socket, packet, sizeof(struct Packet) + packet->len, 0);
-		sleep(1);
-		packet->data[0] = 0xCB;
-		send(server_socket, packet, sizeof(struct Packet) + packet->len, 0);
-		sleep(1);
-		packet->data[0] = 0xDA;
-		send(server_socket, packet, sizeof(struct Packet) + packet->len, 0);
-		sleep(1);
-		close(server_socket);
-	}
-
-	while (connections_left--);
-	
-
 
 	uint8_t buf[256] = { 0 };
 	ssize_t bytes_recv = -1;
