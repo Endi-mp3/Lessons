@@ -74,7 +74,8 @@ int handle_server()
 		}
 		uint8_t buf[256] = { 0 };
 		ssize_t bytes_recv = -1;
-		bytes_recv = recv(client_socket, buf, 255, 0);
+		bytes_recv = recv(client_socket, buf, 255, 0); // TODO получать только хедер
+													   // TODO выделить динамическую память под нужный размер пакета. malloc - free
 		if (bytes_recv == 0) {
 			close(client_socket);
 			return -1;
@@ -141,7 +142,7 @@ int handle_clnt()
 
 	uint8_t buf[256] = { 0 };
 	ssize_t bytes_recv = -1;
-	bytes_recv = recv(sock, buf, 255, 0);
+	bytes_recv = recv(sock, buf, 255, 0); // TODO same (get header and allocate only required memory)
 	if (bytes_recv == 0) {
 		close(sock);
 		return -1;
@@ -173,11 +174,11 @@ int main(int argc, char* argv[])
 	}
 	if (is_server) {
 		printf("-------------------- Running server --------------------\n");
-		return handle_server();
+		return handle_server(); // TODO параметром должен передаваться максимальный размер сообщения. если больше -> вернуть ошибку клиенту
 	}
 	else {
 		printf("-------------------- Running clnt --------------------\n");
-		return handle_clnt();
+		return handle_clnt(); // TODO параметром должно передаваться сообщение (данные в пакете)
 	}
 }
 
