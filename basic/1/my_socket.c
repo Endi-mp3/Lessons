@@ -77,7 +77,7 @@ int handle_server()
 	
 		
 			
-		uint8_t buf[256] = { 0 };
+	uint8_t buf[256] = { 0 };
 	ssize_t bytes_recv = -1;
 	for(int j = 0; j < 3; j++) {
 		bytes_recv = recv(client_socket, buf, 255, 0);
@@ -114,6 +114,8 @@ int handle_server()
 		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
 		sleep(1);
 		close(client_socket);
+		printf("paket otpravil");
+
 	} while (connections_left--);
 	close(sock);
 	free(packet);
@@ -140,15 +142,25 @@ int handle_clnt()
         close(sock);
         return 1;
     }
-    
+    int connections_left = 100;
     struct Packet *pkt = malloc(sizeof(struct Packet) + 16);
     pkt->header.cmd = 0xA;
     pkt->header.id  = 0xDEAD;
     pkt->len        = 16;
     for(int i = 0; i < 16; i++) pkt->data[i] = i & 0xFF;
     
-    send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
-    
+
+    	pkt->header.id = connections_left;
+		pkt->data[0] = 0xBA;
+		send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
+		sleep(1);
+		pkt->data[0] = 0xCB;
+		send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
+		sleep(1);
+		pkt->data[0] = 0xDA;
+		send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
+		sleep(1);
+		printf("paket otpravil \n");
 
 	uint8_t buf[256] = { 0 };
 	ssize_t bytes_recv = -1;
