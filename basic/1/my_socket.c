@@ -58,8 +58,6 @@ int handle_server()
 		free(packet);
         return 1;
     }
-	
-
 	int connections_left = 100;
 	do {
 		if (listen(sock, 1)) {
@@ -74,12 +72,8 @@ int handle_server()
 			free(packet);
 			return -1;
 		}
-	
-		
-			
-	uint8_t buf[256] = { 0 };
-	ssize_t bytes_recv = -1;
-	for(int j = 0; j < 3; j++) {
+		uint8_t buf[256] = { 0 };
+		ssize_t bytes_recv = -1;
 		bytes_recv = recv(client_socket, buf, 255, 0);
 		if (bytes_recv == 0) {
 			close(client_socket);
@@ -101,18 +95,10 @@ int handle_server()
 		for(int i = 0; i < pkt->len; i++)
 			printf("%02x ", pkt->data[i]);
 		printf("\n");
-	}
 
 		packet->header.id = connections_left;
 		packet->data[0] = 0xBA;
 		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
-		sleep(1);
-		packet->data[0] = 0xCB;
-		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
-		sleep(1);
-		packet->data[0] = 0xDA;
-		send(client_socket, packet, sizeof(struct Packet) + packet->len, 0);
-		sleep(1);
 		close(client_socket);
 		printf("paket otpravil");
 
@@ -120,8 +106,6 @@ int handle_server()
 	close(sock);
 	free(packet);
 	return 0;
-
-
 }
 
 int handle_clnt()
@@ -147,46 +131,37 @@ int handle_clnt()
     pkt->header.cmd = 0xA;
     pkt->header.id  = 0xDEAD;
     pkt->len        = 16;
-    for(int i = 0; i < 16; i++) pkt->data[i] = i & 0xFF;
-    
+    for(int i = 0; i < 16; i++)
+		pkt->data[i] = i & 0xFF;
 
-    	pkt->header.id = connections_left;
-		pkt->data[0] = 0xBA;
-		send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
-		sleep(1);
-		pkt->data[0] = 0xCB;
-		send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
-		sleep(1);
-		pkt->data[0] = 0xDA;
-		send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
-		sleep(1);
-		printf("paket otpravil \n");
+	pkt->header.id = connections_left;
+	pkt->data[0] = 0xBA;
+	send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
+	printf("paket otpravil \n");
 
 	uint8_t buf[256] = { 0 };
 	ssize_t bytes_recv = -1;
-	for(int j = 0; j < 3; j++) {
-		bytes_recv = recv(sock, buf, 255, 0);
-		if (bytes_recv == 0) {
-			close(sock);
-			return -1;
-		} else if (bytes_recv == -1) {
-			close(sock);
-			return -2;
-		}
-		printf("Full payload: ");
-		for(int i = 0; i < bytes_recv; i++)
-			printf("%02x ", buf[i]);
-		printf("\n");
-
-		struct Packet *pkt = (struct Packet *)buf;
-		printf("pkt->header.cmd = %x\n", pkt->header.cmd);
-		printf("pkt->id = 0x%x\n", pkt->header.id);
-		printf("pkt->len = %i\n", pkt->len);
-		printf("pkt->data: ");
-		for(int i = 0; i < pkt->len; i++)
-			printf("%02x ", pkt->data[i]);
-		printf("\n");
+	bytes_recv = recv(sock, buf, 255, 0);
+	if (bytes_recv == 0) {
+		close(sock);
+		return -1;
+	} else if (bytes_recv == -1) {
+		close(sock);
+		return -2;
 	}
+	printf("Full payload: ");
+	for(int i = 0; i < bytes_recv; i++)
+		printf("%02x ", buf[i]);
+	printf("\n");
+
+	struct Packet *pkt = (struct Packet *)buf;
+	printf("pkt->header.cmd = %x\n", pkt->header.cmd);
+	printf("pkt->id = 0x%x\n", pkt->header.id);
+	printf("pkt->len = %i\n", pkt->len);
+	printf("pkt->data: ");
+	for(int i = 0; i < pkt->len; i++)
+		printf("%02x ", pkt->data[i]);
+	printf("\n");
 	return 0;
 }
 
