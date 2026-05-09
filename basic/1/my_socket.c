@@ -1,6 +1,6 @@
 #include <stdio.h>          // printf
 #include <errno.h>
-#include <stdlib.h>         // malloc, free
+#include <stdlib.h>         // malloc, free, atoi
 #include <stdint.h>         // uint8_t, uint16_t
 #include <string.h>         // memcpy
 #include <unistd.h>         // close (Linux), sleep
@@ -41,7 +41,6 @@ int handle_server(int Max_len)
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
         fprintf(stderr, "socket no open\n");
-		free(packet);
         return 1;
     }
     struct sockaddr_in serv_addr;
@@ -54,7 +53,7 @@ int handle_server(int Max_len)
 	if (bind(sock, (struct sockaddr*)&serv_addr, addrlen) < 0) {
         fprintf(stderr, "bind failed errno: %i\n", errno);
 		close(sock);
-		free(packet);
+		
         return 1;
     }
 	int connections_left = 100;
@@ -62,13 +61,13 @@ int handle_server(int Max_len)
 		if (listen(sock, 1)) {
 			fprintf(stderr, "listen failed errno: %i\n", errno);
 			close(sock);
-			free(packet);
+			
 			return 1;
 		}
 		int client_socket = accept(sock, (struct sockaddr*)&serv_addr, (socklen_t*)&addrlen);
 		if (client_socket < -1) {
 			close(sock);
-			free(packet);
+			
 			return -1;
 		}
 		uint8_t buf[sizeof(struct Header)] = { 0 };
@@ -106,7 +105,7 @@ int handle_server(int Max_len)
 		printf("pkt->len = %i\n", pkt->header.len);
 		printf("pkt->data: ");
 		for(int i = 0; i < pkt->header.len; i++)
-			printf("%02x ", data_[i]);
+			printf("%02x ", data_buf[i]);
 		printf("\n");
 		
 		struct Packet *p;
@@ -116,7 +115,7 @@ int handle_server(int Max_len)
 		p->header.len = pkt->header.len;
 		p->header.cmd = pkt->header.cmd;
 		memcpy(p->data,	data_buf, pkt->header.len);
-		send(client_socket, p, sizeof(struct Packet) + p->len, 0);
+		send(client_socket, p, sizeof(struct Packet) + p->header.len, 0);
 		close(client_socket);
 		printf("paket otpravil");
 		free(p);
@@ -149,12 +148,12 @@ int handle_clnt(const char *data_pkt)
     struct Packet *pkt = malloc(sizeof(struct Packet) + str_len);
     pkt->header.cmd = 0xA;
     pkt->header.id  = 0xDEAD;
-    pkt->len        = str_len;
+    pkt->header.len        = str_len;
     memcpy(pkt->data, data_pkt, str_len);
 
 	pkt->header.id = connections_left;
 	pkt->data[0] = 0xBA;
-	send(sock, pkt, sizeof(struct Packet) + pkt->len, 0);
+	send(sock, pkt, sizeof(struct Packet) + pkt->header.len, 0);
 	printf("paket otpravil \n");
 
 	uint8_t buf[256] = { 0 };
@@ -177,15 +176,15 @@ int handle_clnt(const char *data_pkt)
 	pkt = (struct Packet *)buf;
 	printf("pkt->header.cmd = %x\n", pkt->header.cmd);
 	printf("pkt->id = 0x%x\n", pkt->header.id);
-	printf("pkt->len = %i\n", pkt->len);
+	printf("pkt->len = %i\n", pkt->header.len);
 	printf("pkt->data: ");
-	for(int i = 0; i < pkt->len; i++)
+	for(int i = 0; i < pkt->header.len; i++)
 		printf("%02x ", pkt->data[i]);
 	printf("\n");
-	free(pkt);
+	//free(pkt);
 	close(sock);
 	return 0;
-
+ 
 }
 
 int main(int argc, char* argv[])
@@ -206,7 +205,14 @@ int main(int argc, char* argv[])
 	if (flag_is_server) {
 		printf("-------------------- Running server --------------------\n");
 		int max_len = 4096;
-										//?????????
+		int value = atoi (argv[2]);
+		if (value > max_len){
+			value = max_len;
+		} else if (value <= 0) {
+			value = max_len;	
+		  } 
+				
+						
 		return handle_server(max_len); // TODO параметром должен передаваться максимальный размер сообщения. если больше -> вернуть ошибку клиенту
 	}
 	else {
