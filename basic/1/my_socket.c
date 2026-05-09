@@ -120,6 +120,7 @@ int handle_server(int Max_len)
 
 		struct Packet *pkt = (struct Packet *)buf;
 		if(pkt->header.len > Max_len) {
+			send(client_socket, "1111111111111", 18, 0); 
 			my_close(client_socket, "client socket");
 			return -1;
 		}
@@ -131,13 +132,13 @@ int handle_server(int Max_len)
 			my_free(data_buf, pkt->header.len, "data_buf");
 			return -1;
 		} else if (bytes_recv == -1) {
-			free(data_buf);
+			my_free(data_buf, pkt->header.len, "data_buf");
 			my_close(client_socket, "client socket");
 			return -2;
 		}
 		print_package(pkt, data_buf);
 		struct Packet *p;
-		p = (struct Packet*) malloc(sizeof(struct Header) + pkt->header.len);
+		p = (struct Packet*) my_malloc(sizeof(struct Header) + pkt->header.len, "client packet");
 
 		p->header.id = connections_left;
 		p->header.len = pkt->header.len;
@@ -145,9 +146,10 @@ int handle_server(int Max_len)
 		memcpy(p->data,	data_buf, pkt->header.len);
 		send(client_socket, p, sizeof(struct Packet) + p->header.len, 0);
 		my_close(client_socket, "client socket");
-		printf("paket otpravil");
-		free(p);
-
+		printf("paket otpravil \n");
+		my_free(p, sizeof(struct Header) + pkt->header.len, "client send packet");
+		my_free(data_buf, pkt->header.len , "data_buf");
+	
 	} while (connections_left--);
 	my_close(sock, "server sock");
 	return 0;
@@ -169,7 +171,7 @@ int handle_clnt(const char *data_pkt)
     int addrlen = sizeof(clnt_addr);
     if (connect(sock, (struct sockaddr*)&clnt_addr, sizeof(clnt_addr)) < 0) {
         fprintf(stderr, "connect failed, errno = %i\n", errno);
-        close(sock);
+        my_close(sock, "client sock");
         return 1;
     }
     int connections_left = DEFAULT_CONNECTION_CNT;
@@ -189,12 +191,12 @@ int handle_clnt(const char *data_pkt)
 	ssize_t bytes_recv = -1;
 	bytes_recv = recv(sock, buf, 255, 0);
 	if (bytes_recv == 0) {
-		close(sock);
-		free(pkt);
+		my_close(sock, "client sock");
+		my_free(pkt, sizeof(struct Packet) + data_pkt_len, "struct Packet* pkt");
 		return -1;
 	} else if (bytes_recv == -1) {
-		free(pkt);
-		close(sock);
+		my_free(pkt, sizeof(struct Packet) + data_pkt_len, "struct Packet* pkt");
+		my_close(sock, "client sock");
 		return -2;
 	}
 	printf("Full payload: ");
@@ -204,7 +206,8 @@ int handle_clnt(const char *data_pkt)
 
 	pkt = (struct Packet *)buf;
 	print_package(pkt, pkt->data);
-	close(sock);
+	my_close(sock, "client sock");
+	my_free(pkt, sizeof(struct Packet) + data_pkt_len, "struct Packet* pkt");
 	return 0;
 }
 
