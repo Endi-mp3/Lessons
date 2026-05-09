@@ -9,21 +9,22 @@
 #include <arpa/inet.h>      // htons, htonl, inet_pton
 #include <stdbool.h>        // bool
 
+#define DEFAULT_MSG	"vnimatelno!!!"
 #define DEFAULT_CONNECTION_CNT (10u)
 #define DEFAULT_MAX_LEN (4096u)
 
-inline void* my_malloc_fn(size_t size, const char* what, const char* where, int line)
+void* my_malloc_fn(size_t size, const char* what, const char* where, int line)
 {
 	void* tmp_ptr = malloc(size);
-	printf("%s %i: malloc called %s[%i]. Result %x\n", where, line, what, size, (uintptr_t)tmp_ptr);
+	printf("%s %i: malloc called %s[%zu]. Result %p\n", where, line, what, size, tmp_ptr);
 	return tmp_ptr;
 }
 
 #define my_malloc(size, what) my_malloc_fn(size, what, __FUNCTION__, __LINE__)
 
-inline void my_free_fn(void* ptr, size_t size, const char* what, const char* where, int line)
+void my_free_fn(void* ptr, size_t size, const char* what, const char* where, int line)
 {
-	printf("%s %i: free called %s[%i] for %x\n", where, line, what, size, (uintptr_t)ptr);
+	printf("%s %i: free called %s[%zu] for %p\n", where, line, what, size, ptr);
 	free(ptr);
 }
 
@@ -31,7 +32,7 @@ inline void my_free_fn(void* ptr, size_t size, const char* what, const char* whe
 
 #define GOT_SOCKET(sock, what) printf("%s %i: got socket: %s fd %i\n", __FUNCTION__, __LINE__, what, sock)
 
-inline int my_close_fn(int sock, const char* what, const char* where, int line)
+int my_close_fn(int sock, const char* what, const char* where, int line)
 {
 	printf("%s %i: close called %s fd=%i\n", where, line, what, sock);
 	return close(sock);
@@ -41,7 +42,7 @@ inline int my_close_fn(int sock, const char* what, const char* where, int line)
 
 int port = 44004;
 const char server_ip[] = "127.0.0.1";
-bool flag_is_server = false, flag_is_clnt = false;
+bool flag_is_server = false;
 
 #pragma pack(push, 1)
 struct Header
@@ -209,22 +210,22 @@ int handle_clnt(const char *data_pkt)
 
 int main(int argc, char* argv[])
 {
-
 	if (argc > 1) {
-		for (int i = 0; i < argc; ++i) {
-			if (strcmp(argv[i], "server") == 0) {
-				flag_is_server = true;
-			} else if (strcmp(argv[i], "clnt") == 0) {
-				flag_is_server = false;
-			}
+		if (strcmp(argv[1], "server") == 0) {
+			flag_is_server = true;
+		} else if (strcmp(argv[1], "clnt") == 0) {
+			flag_is_server = false;
+		} else {
+			fprintf(stderr, "Wrong args: %s\n", argv[1]);
+			return -1;
 		}
-
 	}
-
 
 	if (flag_is_server) {
 		printf("-------------------- Running server --------------------\n");
-		ssize_t max_len= atoi (argv[2]);
+		ssize_t max_len = DEFAULT_MAX_LEN;
+		if (argc > 2)
+			max_len = atoi (argv[2]);
 		if (max_len <= 0)
 			max_len = DEFAULT_MAX_LEN;
 
@@ -232,6 +233,9 @@ int main(int argc, char* argv[])
 	}
 	else {
 		printf("-------------------- Running clnt --------------------\n");
+		char* msg = DEFAULT_MSG;
+		if (argc > 2)
+			msg = argv[2];
 		return handle_clnt(argv[2]); // TODO параметром должно передаваться сообщение (данные в пакете)
 	}
 	return 0;
