@@ -2,7 +2,6 @@
 #include <string.h>
 #include <ncurses.h>
 #include "mylib_menu.h"
-#include "mylib_splitview.h"
 #include "mylib_io.h"
 
 static int global_id_counter = 1;
@@ -180,7 +179,12 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
     int choice = 0;
     int ch;
 
+#ifdef MYLIB_SPLITVIEW_USED
     WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
+#else
+	WINDOW *w = (split_id == -1) ? stdscr : NULL;
+#endif
+
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, FALSE);
@@ -362,8 +366,11 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
     if (!ppCurrent || !*ppCurrent) return -1;
     MyLibMenu *current = *ppCurrent;
     static int choice = 0;
-
+#ifdef MYLIB_SPLITVIEW_USED
     WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
+#else
+    WINDOW *w = (split_id == -1) ? stdscr : NULL;
+#endif
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, TRUE); // неблокирующий ввод

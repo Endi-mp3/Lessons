@@ -6,7 +6,7 @@ CC      := gcc
 CFLAGS  := -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
 
 all: prepare
-	$(CC) $(CFLAGS) my_socket.c -o $(TARGETBIN) -I./
+	$(CC) $(CFLAGS) *.c -o $(TARGETBIN) -I./
 
 run_srv: all
 	$(TARGETBIN) server 256
@@ -17,6 +17,8 @@ run_srv_small: all
 run_srv_big: all
 	$(TARGETBIN) server 65535
 
+run: all
+	$(TARGETBIN) $(ARGS)
 
 run_clnt: all
 	$(TARGETBIN) clnt "$(shell cat $(MSGFILE) )"
