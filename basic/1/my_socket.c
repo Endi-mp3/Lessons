@@ -13,6 +13,12 @@
 #define DEFAULT_CONNECTION_CNT (10u)
 #define DEFAULT_MAX_LEN (4096u)
 
+enum {
+		pkt_cmd_send = 0xA, 
+		pkt_cmd_recv,
+		pkt_cmd_error,
+};
+
 void* my_malloc_fn(size_t size, const char* what, const char* where, int line)
 {
 	void* tmp_ptr = malloc(size);
@@ -120,9 +126,9 @@ int handle_server(int Max_len)
 
 		struct Packet *pkt = (struct Packet *)buf;
 		if(pkt->header.len > Max_len) {
-			send(client_socket, "1111111111111", 18, 0); 
+			send(client_socket, "error", 5, 0); 
 			my_close(client_socket, "client socket");
-			return -1;
+			continue;
 		}
 
 		uint8_t *data_buf = (uint8_t *)my_malloc(pkt->header.len, "data_buf");
@@ -177,7 +183,7 @@ int handle_clnt(const char *data_pkt)
     int connections_left = DEFAULT_CONNECTION_CNT;
     ssize_t data_pkt_len = strlen(data_pkt);
     struct Packet *pkt = my_malloc(sizeof(struct Packet) + data_pkt_len, "struct Packet* pkt");
-    pkt->header.cmd = 0xA;
+    pkt->header.cmd = pkt_cmd_send;
     pkt->header.id  = 0xDEAD;
     pkt->header.len = data_pkt_len;
     memcpy(pkt->data, data_pkt, data_pkt_len);
@@ -203,7 +209,7 @@ int handle_clnt(const char *data_pkt)
 	for(int i = 0; i < bytes_recv; i++)
 		printf("%02x ", buf[i]);
 	printf("\n");
-
+	//if(pkt->header.cmd )                   ??????
 	pkt = (struct Packet *)buf;
 	print_package(pkt, pkt->data);
 	my_close(sock, "client sock");
@@ -239,7 +245,7 @@ int main(int argc, char* argv[])
 		char* msg = DEFAULT_MSG;
 		if (argc > 2)
 			msg = argv[2];
-		return handle_clnt(argv[2]); // TODO параметром должно передаваться сообщение (данные в пакете)
+		return handle_clnt(argv[2]); 
 	}
 	return 0;
 }
