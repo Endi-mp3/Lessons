@@ -108,6 +108,16 @@ int handle_clnt(const char *data_pkt)
 
 int main(int argc, char* argv[])
 {
+
+
+	// init menu
+	// start
+	// selection client / server
+	// check params client / server
+	// run client / server
+
+
+
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0) {
 			flag_is_server = true;

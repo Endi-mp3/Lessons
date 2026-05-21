@@ -1,39 +1,72 @@
-MSGFILE := msg.txt
-BUILD_DIR := .build
-TARGETBINNAME := mysock
-TARGETBIN := $(BUILD_DIR)/$(TARGETBINNAME)
+# ==== Project settings ====
+TARGET   := mysocket_app
+BUILDDIR ?= .build
+OBJDIR   := $(BUILDDIR)/obj
+TGTDIR   := $(BUILDDIR)
+
+# ==== Compiler and flags ====
 CC      := gcc
 CFLAGS  := -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
+LDFLAGS := $(shell pkg-config --libs ncurses)
+# -I/opt/homebrew/opt/ncurses/include
+INCLUDE := -ImyLib
 
-all: prepare
-	$(CC) $(CFLAGS) *.c -o $(TARGETBIN) -I./
+# ==== Sources ====
+# Все .c из корня и myLib/
+SRCS := $(wildcard *.c) $(wildcard myLib/*.c)
 
-run_srv: all
-	$(TARGETBIN) server 256
+# ==== Headers (для зависимостей) ====
+HDRS := $(wildcard myLib/*.h)
 
-run_srv_small: all
-	$(TARGETBIN) server 32
+# ==== Object files (сохраняем структуру каталогов) ====
+OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 
-run_srv_big: all
-	$(TARGETBIN) server 65535
+# ==== Default target ====
+all: $(TGTDIR)/$(TARGET)
 
-run: all
-	$(TARGETBIN) $(ARGS)
+# ==== Link final binary ====
+$(TGTDIR)/$(TARGET): $(OBJS) | $(TGTDIR)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-run_clnt: all
-	$(TARGETBIN) clnt "$(shell cat $(MSGFILE) )"
+# ==== Compile source files ====
+$(OBJDIR)/%.o: %.c $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
-lldb_clnt: all
-	lldb $(TARGETBIN) clnt "$(shell cat $(MSGFILE) )"
+# ==== Ensure build directories exist ====
+$(TGTDIR):
+	mkdir -p $(TGTDIR)
 
-gdb_clnt: all
-	gdb --args $(TARGETBIN) clnt "$(shell cat $(MSGFILE) )"
+# ==== Run the program ====
+test: $(TGTDIR)/$(TARGET)
+	./$<
 
-prepare:
-	mkdir -p $(BUILD_DIR)
+run_srv: $(TGTDIR)/$(TARGET)
+	./$< server 256
+
+run_srv_small: $(TGTDIR)/$(TARGET)
+	./$< server 32
+
+run_srv_big: $(TGTDIR)/$(TARGET)
+	./$< server 65535
+
+run: $(TGTDIR)/$(TARGET)
+	./$< $(ARGS)
+
+run_clnt: $(TGTDIR)/$(TARGET)
+	./$< clnt "$(shell cat $(MSGFILE) )"
+
+lldb_clnt: $(TGTDIR)/$(TARGET)
+	lldb $(TGTDIR)/$(TARGET) clnt "$(shell cat $(MSGFILE) )"
+
+gdb_clnt: $(TGTDIR)/$(TARGET)
+	gdb --args $(TGTDIR)/$(TARGET) clnt "$(shell cat $(MSGFILE) )"
 
 stop:
-	killall $(TARGETBINNAME)
-
+	killall $(TARGET)
+# ==== Clean build artifacts ====
 clean:
-	rm -rf .build
+	rm -rf $(BUILDDIR)
+
+.PHONY: all clean test
+
