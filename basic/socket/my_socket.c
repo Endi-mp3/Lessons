@@ -132,13 +132,24 @@ int main(int argc, char* argv[])
     mylib_menu_create_start_button(menu, "Start"); // кнопки
     mylib_menu_create_exit_button(menu, "Quit");
     MyLibMenu *current_menu = menu;
-	if (mylib_menu_show(menu, -1) < 0) {
-		endwin();
-		return 0;
+
+	MyLibMenuReturnCode_t showResult = mylib_menu_show(menu, -1);
+	switch(showResult) {
+		case MYLIB_MENU_RET_OK:
+			break;
+		case MYLIB_MENU_RET_BTN_BACK:
+			break;
+		case MYLIB_MENU_RET_BTN_START:
+			break;
+		case MYLIB_MENU_RET_BTN_QUIT:
+			endwin();
+			return 0;
+		default:
+		case MYLIB_MENU_RET_ERROR:
+			printf("%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
+			endwin();
+			return 0;
 	}
-
-
-
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0) {

@@ -30,13 +30,13 @@ typedef int (*mymeny_button_callback_t)(void* pvPtr);
  * @typedef enum
  * @brief Possible menu return values
  */
-enum {
+typedef enum {
     MYLIB_MENU_RET_BTN_BACK  = -4, ///< Back button pressed
     MYLIB_MENU_RET_BTN_START = -3, ///< Start button pressed
     MYLIB_MENU_RET_BTN_QUIT  = -2, ///< Quit button pressed
     MYLIB_MENU_RET_ERROR     = -1, ///< Error happened
 	MYLIB_MENU_RET_OK		 = 0,  ///< Success
-};
+} MyLibMenuReturnCode_t;
 
 typedef enum {
     MYLIB_MENU_ITEM_BUTTON,		///< Item type is button
