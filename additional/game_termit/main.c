@@ -15,6 +15,9 @@ typedef struct
     int console_id;
 } GameScreen;
 
+// понял какой файл брать как подсказку?)
+//
+
 bool running = true;
 
 void on_command_cb(const char *cmd)
@@ -58,19 +61,20 @@ int on_hello(void* __attribute((unused))__pv)
 
 int main(void)
 {
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, TRUE);
-    curs_set(0);
-    start_color();
+	/// VVVVVVVVV
+    initscr(); // эти функции нужны для нормальной рисовки
+    cbreak(); // настройки терминала (брейк лайн)
+    noecho(); // отключаем эхо
+    keypad(stdscr, TRUE); // не помню))
+    curs_set(0); // устанавливаем курсор в угол экрана
+    start_color(); // инициализируются цвета терминала
 
-    MyLibMenu *menu = mylib_menu_create("Main");
-    MyLibMenu *menuSettings = mylib_menu_create_submenu(menu, "Settings");
-	mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true);
-	mylib_menu_create_int_config(menuSettings, "Price of your ass? $", 5);
-	
-    mylib_menu_create_start_button(menu, "Start");
+    MyLibMenu *menu = mylib_menu_create("Main"); // вложенные списки создаем, по факту меню
+    MyLibMenu *menuSettings = mylib_menu_create_submenu(menu, "Settings"); // видишь первый параметр это тоже меню, по факту подменю это тоже самое меню, просто с родителем
+	mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true); // есть разные "формы" меню - чек бокс
+	mylib_menu_create_int_config(menuSettings, "Price of your ass? $", 5); // цифровое значение
+
+    mylib_menu_create_start_button(menu, "Start"); // кнопки
     mylib_menu_create_exit_button(menu, "Quit");
     MyLibMenu *current_menu = menu;
 	if (mylib_menu_show(menu, -1) < 0) {
@@ -78,6 +82,7 @@ int main(void)
 		return 0;
 	}
 
+	///^^^^^^^^^ пока ты берешь то что ^^^^^^^
     GameScreen gs = setup_game_screen();
 
     // инициализация модулей

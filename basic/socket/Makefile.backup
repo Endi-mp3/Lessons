@@ -1,0 +1,17 @@
+MSGFILE := msg.txt
+BUILD_DIR := .build
+TARGETBINNAME := mysock
+TARGETBIN := $(BUILD_DIR)/$(TARGETBINNAME)
+CC      := gcc
+CFLAGS  := -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
+
+all: prepare
+	$(CC) $(CFLAGS) *.c -o $(TARGETBIN) -I./
+
+
+prepare:
+	mkdir -p $(BUILD_DIR)
+
+
+clean:
+	rm -rf .build
