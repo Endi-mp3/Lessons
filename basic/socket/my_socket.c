@@ -115,6 +115,28 @@ int main(int argc, char* argv[])
 	// selection client / server
 	// check params client / server
 	// run client / server
+	
+
+    initscr(); // эти функции нужны для нормальной рисовки
+    cbreak(); // настройки терминала (брейк лайн)
+    noecho(); // отключаем эхо
+    keypad(stdscr, TRUE); // не помню))
+    curs_set(0); // устанавливаем курсор в угол экрана
+    start_color(); // инициализируются цвета терминала
+
+    MyLibMenu *menu = mylib_menu_create("Socket Settings"); 								// вложенные списки создаем, по факту меню
+    MyLibMenu *menuSettings = mylib_menu_create_submenu(menu, "Settings"); 		// видишь первый параметр это тоже меню, по факту подменю это тоже самое меню, просто с родителем
+	mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true); 	// есть разные "формы" меню - чек бокс
+	mylib_menu_create_int_config(menuSettings, "Price of your ass? $", 5); 		// цифровое значение
+
+    mylib_menu_create_start_button(menu, "Start"); // кнопки
+    mylib_menu_create_exit_button(menu, "Quit");
+    MyLibMenu *current_menu = menu;
+	if (mylib_menu_show(menu, -1) < 0) {
+		endwin();
+		return 0;
+	}
+
 
 
 
