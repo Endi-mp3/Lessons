@@ -5,6 +5,9 @@
 #include <sys/socket.h>     // socket, connect, send, recv
 #include <netinet/in.h>     // struct sockaddr_in
 #include <arpa/inet.h>      // htons, htonl, inet_pton
+#include <ncurses.h>
+#include "mylib_menu.h"
+
 
 
 #include "my_socket_proto.h"
