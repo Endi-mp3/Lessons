@@ -35,6 +35,7 @@ enum {
     MYLIB_MENU_RET_BTN_START = -3, ///< Start button pressed
     MYLIB_MENU_RET_BTN_QUIT  = -2, ///< Quit button pressed
     MYLIB_MENU_RET_ERROR     = -1, ///< Error happened
+	MYLIB_MENU_RET_OK		 = 0,  ///< Success
 };
 
 typedef enum {
