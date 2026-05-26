@@ -1,5 +1,6 @@
 #include "my_network.h"
 #include "my_ir.h"
+#include "my_socket_proto.h"
 
 
 static ir_raw_packet_t lvIR_Recv_Packet = { 0 };
@@ -11,9 +12,21 @@ int callback_on_receive(const char* buffer, uint32_t* length)
 	for(int i = 0; i < *length; i++)
 		printf("%02x ", buffer[i]);
 	printf("\n");
-
-
-	return 0;
+	struct Packet *pkt = (struct Packet *)buffer;
+	
+	switch (pkt->header.cmd)
+	{
+	case my_sock_cmd_get:
+		
+		break;
+	
+	default:
+		break;
+	}
+	
+	
+	// обработка сигналов  (switch)
+	return 0; 
 }
 
 void app_main(void)
