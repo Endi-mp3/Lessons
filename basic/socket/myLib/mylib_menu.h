@@ -39,11 +39,11 @@ typedef enum {
 } MyLibMenuReturnCode_t;
 
 typedef enum {
-    MYLIB_MENU_ITEM_BUTTON,		///< Item type is button
     MYLIB_MENU_ITEM_SUBMENU,	///< Item type is submenu
     MYLIB_MENU_ITEM_INT,		///< Item type is integer line edit box
     MYLIB_MENU_ITEM_CHECKBOX,	///< Item type is boolean check box
-    MYLIB_MENU_ITEM_STRING		///< Item type is string line edit box
+    MYLIB_MENU_ITEM_STRING,		///< Item type is string line edit box
+    MYLIB_MENU_ITEM_BUTTON,		///< Item type is button
 } mylib_menu_item_type_t;
 
 struct MyLibMenuItem

@@ -1,4 +1,6 @@
 #include "my_socket_lib.h"
+
+
 int port = 44004;
 const char server_ip[] = "127.0.0.1";
 bool flag_is_server = false;
@@ -124,13 +126,22 @@ int main(int argc, char* argv[])
     curs_set(0); // устанавливаем курсор в угол экрана
     start_color(); // инициализируются цвета терминала
 
-    MyLibMenu *menu = mylib_menu_create("Socket Settings"); 								// вложенные списки создаем, по факту меню
-    MyLibMenu *menuSettings = mylib_menu_create_submenu(menu, "Settings"); 		// видишь первый параметр это тоже меню, по факту подменю это тоже самое меню, просто с родителем
-	mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true); 	// есть разные "формы" меню - чек бокс
-	mylib_menu_create_int_config(menuSettings, "Price of your ass? $", 5); 		// цифровое значение
-
-    mylib_menu_create_start_button(menu, "Start"); // кнопки
-    mylib_menu_create_exit_button(menu, "Quit");
+    MyLibMenu *menu = mylib_menu_create("Start Menu"); 								// вложенные списки создаем, по факту меню
+    MyLibMenu *menuClient = mylib_menu_create_submenu(menu, "Client");
+	MyLibMenu *menuServer = mylib_menu_create_submenu(menu, "Server");																									// видишь первый параметр это тоже меню, по факту подменю это тоже самое меню, просто с родителем
+	MyLibMenu *menuClientSettingsPayload = mylib_menu_create_submenu(menuClient, "Payload setting");
+	int menuClientSettingsSend = mylib_menu_create_start_button(menuClient, "SEND");
+	int menuPaylordSettingsFile = mylib_menu_create_string(menuClientSettingsPayload, "Path to file with paylord", "msg.txt");
+	int menuPaylordSettingsCmd = mylib_menu_create_int_config(menuClientSettingsPayload, "Command code", 01);
+	int menuPaylordSettingsData = mylib_menu_create_string(menuClientSettingsPayload, "Data srting", "xyi");
+	MyLibMenu *ConectionSetings = mylib_menu_create_submenu(menu, "Connection Settings");
+	int menuSettingsIP = mylib_menu_create_string (ConectionSetings, "IP", "127.0.0.1");
+	int menuSettingsPort = mylib_menu_create_int_config(ConectionSetings, "Port", 5000);
+    int menuServerMaxMsgLen = mylib_menu_create_int_config (menuServer, "Max Message length", 4096);
+	int menuServerStartButton = mylib_menu_create_start_button (menuServer, "START");
+	
+	
+	mylib_menu_create_exit_button(menu, "Quit");
     MyLibMenu *current_menu = menu;
 
 	MyLibMenuReturnCode_t showResult = mylib_menu_show(menu, -1);
