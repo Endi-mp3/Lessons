@@ -28,6 +28,13 @@
  */
 #define YIELD_TO_ALL_MS 50
 
+typedef int (*TcpServerCallback_t)(const char*, uint32_t* );
+
+typedef struct
+{
+	TcpServerCallback_t callback;
+	void *other;
+}TcpServerParameters;
 
 void tcp_server_task(void *pvParameters);
 void tcp_client_task(void *pvParameters);

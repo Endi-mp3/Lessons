@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
 	int menuPaylordSettingsCmd = mylib_menu_create_int_config(menuClientSettingsPayload, "Command code", 01);
 	int menuPaylordSettingsData = mylib_menu_create_string(menuClientSettingsPayload, "Data srting", "xyi");
 	MyLibMenu *ConectionSetings = mylib_menu_create_submenu(menu, "Connection Settings");
-	int menuSettingsIP = mylib_menu_create_string (ConectionSetings, "IP", "127.0.0.1");
-	int menuSettingsPort = mylib_menu_create_int_config(ConectionSetings, "Port", 44441);
+	int menuSettingsIP = mylib_menu_create_string (ConectionSetings, "IP", "192.168.88.24");
+	int menuSettingsPort = mylib_menu_create_int_config(ConectionSetings, "Port", 3344);
     int menuServerMaxMsgLen = mylib_menu_create_int_config (menuServer, "Max Message length", 4096);
 	int menuServerStartButton = mylib_menu_create_button (menuServer, "START", NULL);
 

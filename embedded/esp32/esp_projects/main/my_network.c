@@ -196,7 +196,8 @@ void tcp_server_task(void *pvParameters)
 {
     static char rx_buffer[128];
     static const char *TAG = "nonblocking-socket-server";
-    SemaphoreHandle_t *server_ready = pvParameters;
+	TcpServerParameters* params = (TcpServerParameters*)pvParameters;
+    SemaphoreHandle_t *server_ready = params->other;
     struct addrinfo hints = { .ai_socktype = SOCK_STREAM };
     struct addrinfo *address_info;
     int listen_sock = INVALID_SOCK;
@@ -242,13 +243,13 @@ void tcp_server_task(void *pvParameters)
     ESP_LOGI(TAG, "Socket bound on %s:%s", CONFIG_EXAMPLE_TCP_SERVER_BIND_ADDRESS, CONFIG_EXAMPLE_TCP_SERVER_BIND_PORT);
 
     // Set queue (backlog) of pending connections to one (can be more)
-    err = listen(listen_sock, 1);
+    err = listen(listen_sock, 5);
     if (err != 0) {
         log_socket_error(TAG, listen_sock, errno, "Error occurred during listen");
         goto error;
     }
-    ESP_LOGI(TAG, "Socket listening");
     xSemaphoreGive(*server_ready);
+    ESP_LOGI(TAG, "Socket listening");
 
     // Main loop for accepting new connections and serving all connected clients
     while (1) {
@@ -257,7 +258,7 @@ void tcp_server_task(void *pvParameters)
 
         // Find a free socket
         int new_sock_index = 0;
-        for (new_sock_index=0; new_sock_index<max_socks; ++new_sock_index) {
+        for (new_sock_index=0; new_sock_index < max_socks; ++new_sock_index) {
             if (sock[new_sock_index] == INVALID_SOCK) {
                 break;
             }
@@ -267,7 +268,6 @@ void tcp_server_task(void *pvParameters)
         if (new_sock_index < max_socks) {
             // Try to accept a new connections
             sock[new_sock_index] = accept(listen_sock, (struct sockaddr *)&source_addr, &addr_len);
-
             if (sock[new_sock_index] < 0) {
                 if (errno == EWOULDBLOCK) { // The listener socket did not accepts any connection
                                             // continue to serve open connections and try to accept again upon the next iteration
@@ -291,7 +291,7 @@ void tcp_server_task(void *pvParameters)
         }
 
         // We serve all the connected clients in this loop
-        for (int i=0; i<max_socks; ++i) {
+        for (int i=0; i < max_socks; ++i) {
             if (sock[i] != INVALID_SOCK) {
 
                 // This is an open socket -> try to serve it
@@ -304,7 +304,11 @@ void tcp_server_task(void *pvParameters)
                 } else if (len > 0) {
                     // Received some data -> echo back
                     ESP_LOGI(TAG, "[sock=%d]: Received %.*s", sock[i], len, rx_buffer);
-
+					if (params->callback(rx_buffer, &len) < 0) {
+                        ESP_LOGI(TAG, "[sock=%d]: socket_send() returned %d -> closing the socket", sock[i], len);
+                        close(sock[i]);
+                        sock[i] = INVALID_SOCK;
+					}
                     len = socket_send(TAG, sock[i], rx_buffer, len);
                     if (len < 0) {
                         // Error occurred on write to this socket -> close it and mark invalid
@@ -325,6 +329,7 @@ void tcp_server_task(void *pvParameters)
     }
 
 error:
+	ESP_LOGE(TAG, "End of function\n");
     if (listen_sock != INVALID_SOCK) {
         close(listen_sock);
     }
