@@ -304,8 +304,11 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
                                     choice = 0;
                                     break;
                                 }
-                            } else if (it->type == MYLIB_MENU_ITEM_BUTTON && it->data.callback) {
-                                it->data.callback(NULL);
+                            } else if (it->type == MYLIB_MENU_ITEM_BUTTON ) {
+                                if (it->data.callback)
+									return it->data.callback(it);
+								else
+									return it->id;
                                 break;
                             } else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
                                 it->data.boolValue = !it->data.boolValue;
@@ -454,11 +457,19 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
 						return MYLIB_MENU_RET_BTN_QUIT;
                     if (it->id == MYLIB_MENU_RET_BTN_START)
 						return MYLIB_MENU_RET_BTN_START;
+                    if (it->id == MYLIB_MENU_RET_BTN_START)
+						return MYLIB_MENU_RET_BTN_START;
                     if (it->id == MYLIB_MENU_RET_BTN_BACK && current->parent) {
                         *ppCurrent = current->parent;
                         choice = 0;
                         return MYLIB_MENU_RET_OK;
                     }
+					if (it->type == MYLIB_MENU_ITEM_BUTTON) {
+						if (it->data.callback != NULL) {
+							return it->data.callback(it);
+						}
+						return it->id;
+					}
                     if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
                         *ppCurrent = it->data.submenu;
                         choice = 0;
