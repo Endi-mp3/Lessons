@@ -6,27 +6,30 @@
 static ir_raw_packet_t lvIR_Recv_Packet = { 0 };
 static rmt_channel_handle_t lvIR_Recv_Hdlr;
 
-int callback_on_receive(const char* buffer, uint32_t* length)
+int callback_on_receive(char* buffer, uint32_t* length)
 {
 	ESP_LOGI("app_main", "recv:");
 	for(int i = 0; i < *length; i++)
 		printf("%02x ", buffer[i]);
 	printf("\n");
 	struct Packet *pkt = (struct Packet *)buffer;
-	
+
 	switch (pkt->header.cmd)
 	{
-	case my_sock_cmd_get:
-		
+	case my_sock_cmd_slot_assign:
+		// pseudo code
+		// form success answer package
+		// form error answer package
+		//
 		break;
-	
+	case 
 	default:
 		break;
 	}
-	
-	
+
+
 	// обработка сигналов  (switch)
-	return 0; 
+	return 0;
 }
 
 void app_main(void)

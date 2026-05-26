@@ -9,7 +9,7 @@ CC      := gcc
 CFLAGS  := -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
 LDFLAGS := $(shell pkg-config --libs ncurses)
 # -I/opt/homebrew/opt/ncurses/include
-INCLUDE := -ImyLib
+INCLUDE := -ImyLib -I../esp32/esp_projects/main
 
 # ==== Sources ====
 # Все .c из корня и myLib/

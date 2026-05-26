@@ -28,7 +28,7 @@
  */
 #define YIELD_TO_ALL_MS 50
 
-typedef int (*TcpServerCallback_t)(const char*, uint32_t* );
+typedef int (*TcpServerCallback_t)(char*, uint32_t* );
 
 typedef struct
 {

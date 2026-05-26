@@ -16,10 +16,13 @@ enum MySockRet
 
 enum MySockCommands
 {
-	my_sock_cmd_get = 0,
-	my_sock_cmd_set,
-	my_sock_cmd_info,
-	my_sock_cmd_err,
+	my_sock_cmd_err = -1,
+	my_sock_cmd_slot_assign,
+	my_sock_cmd_slot_trigger,
+	my_sock_cmd_slot_clean,
+	my_sock_cmd_slot_clean_all,
+	my_sock_cmd_watcher_settings,
+	my_sock_cmd_wifi_settings
 };
 
 #pragma pack(push, 1)
