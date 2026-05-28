@@ -126,12 +126,16 @@ int main(int argc, char* argv[])
 
     MyLibMenu *menu = mylib_menu_create("Socket Settings"); 								// вложенные списки создаем, по факту меню
     MyLibMenu *menuSettings = mylib_menu_create_submenu(menu, "Settings"); 		// видишь первый параметр это тоже меню, по факту подменю это тоже самое меню, просто с родителем
-	mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true); 	// есть разные "формы" меню - чек бокс
-	mylib_menu_create_int_config(menuSettings, "Price of your ass? $", 5); 		// цифровое значение
-
+	int id_mc_cb_bool = mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true); 	// есть разные "формы" меню - чек бокс
+	int id_mc_int =  mylib_menu_create_int_config(menuSettings, "Price of your ass? $", 5); 		// цифровое значение
+	
     mylib_menu_create_start_button(menu, "Start"); // кнопки
     mylib_menu_create_exit_button(menu, "Quit");
-    MyLibMenu *current_menu = menu;
+    MyLibMenu *current_menu = menu;   
+    
+
+
+	
 
 	MyLibMenuReturnCode_t showResult = mylib_menu_show(menu, -1);
 	switch(showResult) {
@@ -142,15 +146,33 @@ int main(int argc, char* argv[])
 		case MYLIB_MENU_RET_BTN_START:
 			break;
 		case MYLIB_MENU_RET_BTN_QUIT:
+			mylib_menu_delete(menu);
 			endwin();
 			return 0;
 		default:
 		case MYLIB_MENU_RET_ERROR:
 			printf("%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
+			mylib_menu_delete(menu);
 			endwin();
 			return 0;
 	}
+	int cfg_value_int;
+	
+	if (mylib_menu_get_config(menu, id_mc_int, &cfg_value_int) != MYLIB_MENU_RET_OK){
+		mylib_menu_delete(menu);
+		endwin();
+		return -1;
+	}
+	mylib_menu_delete(menu);
+	endwin();
+	printf("%i", cfg_value_int);
+			
+	
+	//я тута если break)
+	return cfg_value_int;
 
+	
+	
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0) {
 			flag_is_server = true;
