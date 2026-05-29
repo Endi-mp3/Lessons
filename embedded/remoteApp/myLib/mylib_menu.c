@@ -5,6 +5,19 @@
 #include "mylib_io.h"
 
 static int global_id_counter = 1;
+static int global_max_prio = 1;
+
+static MyLibMenuItem* s_create_libMenuItem(MyLibMenu* parentPtr, const char* title, int id, int prio, mylib_menu_item_type_t type)
+{
+	MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
+    item->type = type;
+	item->id = id;
+	item->show_prio = prio;
+    item->title = strdup(title);
+    item->next = parentPtr->items;
+    parentPtr->items = item;
+	return item;
+}
 
 // ---------------- Creation / deletion ----------------
 
@@ -33,13 +46,9 @@ MyLibMenu *mylib_menu_create_submenu(MyLibMenu* parentPtr, const char* title)
     submenu->items = backBtn;
 
     // Add link in parent
-    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
-    item->type = MYLIB_MENU_ITEM_SUBMENU;
-    item->title = strdup(title);
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr, title, global_id_counter++, 0, MYLIB_MENU_ITEM_SUBMENU);
     item->data.submenu = submenu;
-    item->next = parentPtr->items;
-    parentPtr->items = item;
-
+	submenu->self = item;
     return submenu;
 }
 
@@ -66,76 +75,70 @@ void mylib_menu_delete(MyLibMenu* ptr)
 int mylib_menu_create_int_config(MyLibMenu* parentPtr, const char* title, int defaultValue)
 {
     if (!parentPtr) return MYLIB_MENU_RET_ERROR;
-    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
-    item->type = MYLIB_MENU_ITEM_INT;
-    item->title = strdup(title);
-    item->id = global_id_counter++;
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
+												title,
+												global_id_counter++,
+												0,
+												MYLIB_MENU_ITEM_CHECKBOX);
     item->data.intValue = defaultValue;
-    item->next = parentPtr->items;
-    parentPtr->items = item;
     return item->id;
 }
 
 int mylib_menu_create_checkbox(MyLibMenu* parentPtr, const char* title, bool defaultValue)
 {
     if (!parentPtr) return MYLIB_MENU_RET_ERROR;
-    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
-    item->type = MYLIB_MENU_ITEM_CHECKBOX;
-    item->title = strdup(title);
-    item->id = global_id_counter++;
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
+												title,
+												global_id_counter++,
+												0,
+												MYLIB_MENU_ITEM_CHECKBOX);
     item->data.boolValue = defaultValue;
-    item->next = parentPtr->items;
-    parentPtr->items = item;
     return item->id;
 }
 
 int mylib_menu_create_string(MyLibMenu* parentPtr, const char* title, const char* defaultValue)
 {
     if (!parentPtr) return MYLIB_MENU_RET_ERROR;
-    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
-    item->type = MYLIB_MENU_ITEM_STRING;
-    item->title = strdup(title);
-    item->id = global_id_counter++;
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
+												title,
+												global_id_counter++,
+												0,
+												MYLIB_MENU_ITEM_STRING);
     item->data.strValue = strdup(defaultValue ? defaultValue : "");
-    item->next = parentPtr->items;
-    parentPtr->items = item;
     return item->id;
 }
 
 int mylib_menu_create_exit_button(MyLibMenu* parentPtr, const char* title)
 {
     if (!parentPtr) return MYLIB_MENU_RET_ERROR;
-    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
-    item->type = MYLIB_MENU_ITEM_BUTTON;
-    item->title = strdup(title ? title : "Quit");
-    item->id = MYLIB_MENU_RET_BTN_QUIT;
-    item->next = parentPtr->items;
-    parentPtr->items = item;
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
+												title ? title : "Quit",
+												MYLIB_MENU_RET_BTN_QUIT,
+												0,
+												MYLIB_MENU_ITEM_BUTTON);
     return item->id;
 }
 
 int mylib_menu_create_start_button(MyLibMenu* parentPtr, const char* title)
 {
     if (!parentPtr) return MYLIB_MENU_RET_ERROR;
-    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
-    item->type = MYLIB_MENU_ITEM_BUTTON;
-    item->title = strdup(title ? title : "Start");
-    item->id = MYLIB_MENU_RET_BTN_START;
-    item->next = parentPtr->items;
-    parentPtr->items = item;
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
+												title ? title : "Start",
+												MYLIB_MENU_RET_BTN_START,
+												0,
+												MYLIB_MENU_ITEM_BUTTON);
     return item->id;
 }
 
 int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mymeny_button_callback_t cb)
 {
     if (!parentPtr) return MYLIB_MENU_RET_ERROR;
-    MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
-    item->type = MYLIB_MENU_ITEM_BUTTON;
-    item->title = strdup(title);
-    item->id = global_id_counter++;
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
+												title,
+												global_id_counter++,
+												0,
+												MYLIB_MENU_ITEM_BUTTON);
     item->data.callback = cb;
-    item->next = parentPtr->items;
-    parentPtr->items = item;
     return item->id;
 }
 
@@ -203,6 +206,8 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
         int idx = 0;
         MyLibMenuItem* it = current->items;
         while (it) {
+			if (it->show_prio < 0 || it->show_prio != prio) continue;
+
             if (idx == choice) wattron(w, A_REVERSE);
 
             if (split_id == -1) {
@@ -391,47 +396,51 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
     }
 
     int idx = 0;
-    for (MyLibMenuItem* it = current->items; it; it = it->next, idx++) {
-        if (idx == choice) wattron(w, A_REVERSE);
+	for(int prio = 0; prio < global_max_prio; i++) {
+		for (MyLibMenuItem* it = current->items; it; it = it->next, idx++) {
+			if (it->show_prio < 0 || it->show_prio != prio) continue;
 
-        if (split_id == -1) {
-            switch (it->type) {
-                case MYLIB_MENU_ITEM_CHECKBOX:
-                    mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
-                    break;
-                case MYLIB_MENU_ITEM_INT:
-                    mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
-                    break;
-                case MYLIB_MENU_ITEM_STRING:
-                    mvprintw(idx+2, 2, "%s: %s", it->title,
-                             it->data.strValue?it->data.strValue:"");
-                    break;
-                default:
-                    mvprintw(idx+2, 2, "%s", it->title);
-                    break;
-            }
-        } else {
-            switch (it->type) {
-                case MYLIB_MENU_ITEM_CHECKBOX:
-                    mylib_io_print_at(split_id, idx+2, 2, "[%c] %s",
-                                    it->data.boolValue?'X':' ', it->title);
-                    break;
-                case MYLIB_MENU_ITEM_INT:
-                    mylib_io_print_at(split_id, idx+2, 2, "%s: %d",
-                                    it->title, it->data.intValue);
-                    break;
-                case MYLIB_MENU_ITEM_STRING:
-                    mylib_io_print_at(split_id, idx+2, 2, "%s: %s",
-                                    it->title, it->data.strValue?it->data.strValue:"");
-                    break;
-                default:
-                    mylib_io_print_at(split_id, idx+2, 2, "%s", it->title);
-                    break;
-            }
-        }
+			if (idx == choice) wattron(w, A_REVERSE);
 
-        if (idx == choice) wattroff(w, A_REVERSE);
-    }
+			if (split_id == -1) {
+				switch (it->type) {
+					case MYLIB_MENU_ITEM_CHECKBOX:
+						mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
+						break;
+					case MYLIB_MENU_ITEM_INT:
+						mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
+						break;
+					case MYLIB_MENU_ITEM_STRING:
+						mvprintw(idx+2, 2, "%s: %s", it->title,
+								 it->data.strValue?it->data.strValue:"");
+						break;
+					default:
+						mvprintw(idx+2, 2, "%s", it->title);
+						break;
+				}
+			} else {
+				switch (it->type) {
+					case MYLIB_MENU_ITEM_CHECKBOX:
+						mylib_io_print_at(split_id, idx+2, 2, "[%c] %s",
+										it->data.boolValue?'X':' ', it->title);
+						break;
+					case MYLIB_MENU_ITEM_INT:
+						mylib_io_print_at(split_id, idx+2, 2, "%s: %d",
+										it->title, it->data.intValue);
+						break;
+					case MYLIB_MENU_ITEM_STRING:
+						mylib_io_print_at(split_id, idx+2, 2, "%s: %s",
+										it->title, it->data.strValue?it->data.strValue:"");
+						break;
+					default:
+						mylib_io_print_at(split_id, idx+2, 2, "%s", it->title);
+						break;
+				}
+			}
+
+			if (idx == choice) wattroff(w, A_REVERSE);
+		}
+	}
     wrefresh(w);
 
     // --- Обработка ввода ---
@@ -490,4 +499,68 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
     }
     return MYLIB_MENU_RET_OK;
 }
+
+int mylib_menu_set_item_priority(MyLibMenu* rootPtr, int id, int prio)
+{
+	MyLibMenuItem* it = rootPtr->items;
+	while (it) {
+
+		if (it->id == id) {
+			it->prio = prio;
+			return 0;
+		}
+
+		if (it->type == MYLIB_MENU_ITEM_SUBMENU &&
+			mylib_menu_set_item_priority(it->data.submenu, id, prio) == 0)
+			return 0;
+
+		it = it->next;
+	}
+	return -1;
+}
+
+int mylib_menu_get_item_priority(MyLibMenu* rootPtr, int id, int *prioPtr)
+{
+	MyLibMenuItem* it = rootPtr->items;
+	while (it) {
+
+		if (it->id == id) {
+			*prioPtr = it->prio;
+			return 0;
+		}
+
+		if (it->type == MYLIB_MENU_ITEM_SUBMENU &&
+			mylib_menu_get_item_priority(it->data.submenu, id, prioPtr) == 0)
+			return 0;
+
+		it = it->next;
+	}
+	return -1;
+}
+
+int mylib_menu_id(MyLibMenu* menuPtr)
+{
+	if (menuPtr && menuPtr->self) {
+		return menuPtr->self->id;
+	}
+	return -1;
+}
+
+int mylib_menu_set_menu_priority(MyLibMenu* menuPtr, int prio)
+{
+	if (menuPtr && menuPtr->self) {
+		menuPtr->self->show_prio = prio;
+		return 0;
+	}
+	return -1;
+}
+
+int mylib_menu_get_menu_priority(MyLibMenu* menuPtr)
+{
+	if (menuPtr && menuPtr->self) {
+		return menuPtr->self->show_prio;
+	}
+	return -2;
+}
+
 

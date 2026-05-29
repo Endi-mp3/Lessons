@@ -51,6 +51,7 @@ struct MyLibMenuItem
     mylib_menu_item_type_t type;
     char *title;
     int id;
+	int show_prio;	///< Integer value of drawing prio. Lower better. **Lower than zero means: not show!**
     union {
         int intValue;
         bool boolValue;
@@ -64,6 +65,7 @@ struct MyLibMenuItem
 struct MyLibMenu
 {
     char *title;
+	MyLibMenuItem *self;
     MyLibMenuItem *items;
     MyLibMenu *parent;
 };
@@ -109,11 +111,20 @@ int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mymeny_but
 // это чтобы получить значение из настроек, ты получаешь его в указатель в resultPtr, но не забываем конвертацию типов
 int mylib_menu_get_config(MyLibMenu* rootPtr, int id, void* resultPtr);
 
+int mylib_menu_id(MyLibMenu* menuPtr);
+
+int mylib_menu_set_menu_priority(MyLibMenu* menuPtr, int prio);
+/// return -2 in case of error
+int mylib_menu_get_menu_priority(MyLibMenu* menuPtr);
+
+int mylib_menu_set_item_priority(MyLibMenu* rootPtr, int id, int prio);
+int mylib_menu_get_item_priority(MyLibMenu* rootPtr, int id, int *prioPtr);
 
 // Show menu in split (blocking), -1 чтобы стартовать без сплита
 int mylib_menu_show(MyLibMenu* root, int split_id);
-
 int mylib_menu_step(MyLibMenu **ppCurrent, int split_id);
+
+
 #ifdef __cplusplus
 }
 #endif
