@@ -12,7 +12,7 @@ static MyLibMenuItem* s_create_libMenuItem(MyLibMenu* parentPtr, const char* tit
 	MyLibMenuItem* item = calloc(1, sizeof(MyLibMenuItem));
     item->type = type;
 	item->id = id;
-	item->show_prio = prio;
+	item->prio = prio;
     item->title = strdup(title);
     item->next = parentPtr->items;
     parentPtr->items = item;
@@ -204,53 +204,55 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 
         // Отрисовка пунктов
         int idx = 0;
-        MyLibMenuItem* it = current->items;
-        while (it) {
-			if (it->show_prio < 0 || it->show_prio != prio) continue;
+		MyLibMenuItem* it;
+		for(int prio = 0; prio < global_max_prio; prio++) {
+			it = current->items;
+			while (it) {
+				if (it->prio < 0 || it->prio != prio) continue;
 
-            if (idx == choice) wattron(w, A_REVERSE);
+				if (idx == choice) wattron(w, A_REVERSE);
 
-            if (split_id == -1) {
-                switch (it->type) {
-                    case MYLIB_MENU_ITEM_CHECKBOX:
-                        mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
-                        break;
-                    case MYLIB_MENU_ITEM_INT:
-                        mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
-                        break;
-                    case MYLIB_MENU_ITEM_STRING:
-                        mvprintw(idx+2, 2, "%s: %s", it->title,
-                                 it->data.strValue?it->data.strValue:"");
-                        break;
-                    default:
-                        mvprintw(idx+2, 2, "%s", it->title);
-                        break;
-                }
-            } else {
-                switch (it->type) {
-                    case MYLIB_MENU_ITEM_CHECKBOX:
-                        mylib_io_print_at(split_id, idx+2, 2, "[%c] %s",
-                                        it->data.boolValue?'X':' ', it->title);
-                        break;
-                    case MYLIB_MENU_ITEM_INT:
-                        mylib_io_print_at(split_id, idx+2, 2, "%s: %d",
-                                        it->title, it->data.intValue);
-                        break;
-                    case MYLIB_MENU_ITEM_STRING:
-                        mylib_io_print_at(split_id, idx+2, 2, "%s: %s",
-                                        it->title, it->data.strValue?it->data.strValue:"");
-                        break;
-                    default:
-                        mylib_io_print_at(split_id, idx+2, 2, "%s", it->title);
-                        break;
-                }
-            }
+				if (split_id == -1) {
+					switch (it->type) {
+						case MYLIB_MENU_ITEM_CHECKBOX:
+							mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
+							break;
+						case MYLIB_MENU_ITEM_INT:
+							mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
+							break;
+						case MYLIB_MENU_ITEM_STRING:
+							mvprintw(idx+2, 2, "%s: %s", it->title,
+									 it->data.strValue?it->data.strValue:"");
+							break;
+						default:
+							mvprintw(idx+2, 2, "%s", it->title);
+							break;
+					}
+				} else {
+					switch (it->type) {
+						case MYLIB_MENU_ITEM_CHECKBOX:
+							mylib_io_print_at(split_id, idx+2, 2, "[%c] %s",
+											it->data.boolValue?'X':' ', it->title);
+							break;
+						case MYLIB_MENU_ITEM_INT:
+							mylib_io_print_at(split_id, idx+2, 2, "%s: %d",
+											it->title, it->data.intValue);
+							break;
+						case MYLIB_MENU_ITEM_STRING:
+							mylib_io_print_at(split_id, idx+2, 2, "%s: %s",
+											it->title, it->data.strValue?it->data.strValue:"");
+							break;
+						default:
+							mylib_io_print_at(split_id, idx+2, 2, "%s", it->title);
+							break;
+					}
+				}
 
-            if (idx == choice) wattroff(w, A_REVERSE);
-            it = it->next;
-            idx++;
-        }
-
+				if (idx == choice) wattroff(w, A_REVERSE);
+				it = it->next;
+				idx++;
+			}
+		}
         wrefresh(w);
 
         // Ввод
@@ -396,9 +398,9 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
     }
 
     int idx = 0;
-	for(int prio = 0; prio < global_max_prio; i++) {
+	for(int prio = 0; prio < global_max_prio; prio++) {
 		for (MyLibMenuItem* it = current->items; it; it = it->next, idx++) {
-			if (it->show_prio < 0 || it->show_prio != prio) continue;
+			if (it->prio < 0 || it->prio != prio) continue;
 
 			if (idx == choice) wattron(w, A_REVERSE);
 
@@ -549,7 +551,7 @@ int mylib_menu_id(MyLibMenu* menuPtr)
 int mylib_menu_set_menu_priority(MyLibMenu* menuPtr, int prio)
 {
 	if (menuPtr && menuPtr->self) {
-		menuPtr->self->show_prio = prio;
+		menuPtr->self->prio = prio;
 		return 0;
 	}
 	return -1;
@@ -558,7 +560,7 @@ int mylib_menu_set_menu_priority(MyLibMenu* menuPtr, int prio)
 int mylib_menu_get_menu_priority(MyLibMenu* menuPtr)
 {
 	if (menuPtr && menuPtr->self) {
-		return menuPtr->self->show_prio;
+		return menuPtr->self->prio;
 	}
 	return -2;
 }

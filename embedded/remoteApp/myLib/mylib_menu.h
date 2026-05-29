@@ -51,7 +51,7 @@ struct MyLibMenuItem
     mylib_menu_item_type_t type;
     char *title;
     int id;
-	int show_prio;	///< Integer value of drawing prio. Lower better. **Lower than zero means: not show!**
+	int prio;	///< Integer value of drawing prio. Lower better. **Lower than zero means: not show!**
     union {
         int intValue;
         bool boolValue;
