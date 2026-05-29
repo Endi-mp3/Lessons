@@ -1,6 +1,7 @@
 #include "my_socket_lib.h"
+
+
 int port = 44004;
-const char server_ip[] = "127.0.0.1";
 bool flag_is_server = false;
 int Max_len = 21000000;
 
@@ -53,7 +54,7 @@ int handle_server()
 	return 0;
 }
 
-int handle_clnt(const char *data_pkt)
+int handle_clnt(const char *data_pkt, const char* server_ip)
 {
 	enum MySockRet res = my_sock_err_ok;
     struct sockaddr_in clnt_addr;
@@ -115,7 +116,7 @@ int main(int argc, char* argv[])
 	// selection client / server
 	// check params client / server
 	// run client / server
-	
+
 
     initscr(); // эти функции нужны для нормальной рисовки
     cbreak(); // настройки терминала (брейк лайн)
@@ -124,6 +125,7 @@ int main(int argc, char* argv[])
     curs_set(0); // устанавливаем курсор в угол экрана
     start_color(); // инициализируются цвета терминала
 
+<<<<<<< HEAD
     MyLibMenu *menu = mylib_menu_create("Socket Settings"); 								// вложенные списки создаем, по факту меню
     MyLibMenu *menuSettings = mylib_menu_create_submenu(menu, "Settings"); 		// видишь первый параметр это тоже меню, по факту подменю это тоже самое меню, просто с родителем
 	int id_mc_cb_bool = mylib_menu_create_checkbox(menuSettings, "Are you idiot sandwich?", true); 	// есть разные "формы" меню - чек бокс
@@ -136,12 +138,29 @@ int main(int argc, char* argv[])
 
 
 	
+=======
+    MyLibMenu *menu = mylib_menu_create("Start Menu"); 								// вложенные списки создаем, по факту меню
+    MyLibMenu *menuClient = mylib_menu_create_submenu(menu, "Client");
+	MyLibMenu *menuServer = mylib_menu_create_submenu(menu, "Server");																									// видишь первый параметр это тоже меню, по факту подменю это тоже самое меню, просто с родителем
+	MyLibMenu *menuClientSettingsPayload = mylib_menu_create_submenu(menuClient, "Payload setting");
+	int menuClientSettingsSend = mylib_menu_create_button(menuClient, "SEND", NULL);
+	int menuPaylordSettingsFile = mylib_menu_create_string(menuClientSettingsPayload, "Path to file with paylord", "");
+	int menuPaylordSettingsCmd = mylib_menu_create_int_config(menuClientSettingsPayload, "Command code", 01);
+	int menuPaylordSettingsData = mylib_menu_create_string(menuClientSettingsPayload, "Data srting", "xyi");
+	MyLibMenu *ConectionSetings = mylib_menu_create_submenu(menu, "Connection Settings");
+	int menuSettingsIP = mylib_menu_create_string (ConectionSetings, "IP", "127.0.0.1");
+	int menuSettingsPort = mylib_menu_create_int_config(ConectionSetings, "Port", 44441);
+    int menuServerMaxMsgLen = mylib_menu_create_int_config (menuServer, "Max Message length", 4096);
+	int menuServerStartButton = mylib_menu_create_button (menuServer, "START", NULL);
+
+
+	mylib_menu_create_exit_button(menu, "Quit");
+    MyLibMenu *current_menu = menu;
+>>>>>>> 22a4f03c11e85693699309885d59347d9426b35c
 
 	MyLibMenuReturnCode_t showResult = mylib_menu_show(menu, -1);
 	switch(showResult) {
 		case MYLIB_MENU_RET_OK:
-			break;
-		case MYLIB_MENU_RET_BTN_BACK:
 			break;
 		case MYLIB_MENU_RET_BTN_START:
 			break;
@@ -149,12 +168,13 @@ int main(int argc, char* argv[])
 			mylib_menu_delete(menu);
 			endwin();
 			return 0;
-		default:
 		case MYLIB_MENU_RET_ERROR:
 			printf("%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
 			mylib_menu_delete(menu);
 			endwin();
 			return 0;
+		default:
+			break;
 	}
 	int cfg_value_int;
 	
@@ -171,6 +191,7 @@ int main(int argc, char* argv[])
 	//я тута если break)
 	return cfg_value_int;
 
+<<<<<<< HEAD
 	
 	
 	if (argc > 1) {
@@ -178,30 +199,38 @@ int main(int argc, char* argv[])
 			flag_is_server = true;
 		} else if (strcmp(argv[1], "clnt") == 0) {
 			flag_is_server = false;
+=======
+	endwin();
+	printf("Start\n");
+	char* ip;
+	mylib_menu_get_config(menu, menuSettingsPort, &port);
+	mylib_menu_get_config(menu, menuSettingsIP, &ip);
+	if (showResult == menuServerStartButton) {
+		int maxLength;
+		mylib_menu_get_config(menu, menuServerMaxMsgLen, &maxLength);
+		handle_server(maxLength);
+	} else if (showResult == menuClientSettingsSend) {
+		char *payloadFilePath;
+		uint8_t *payload;
+		int cmd;
+		mylib_menu_get_config(menu, menuPaylordSettingsFile, &payloadFilePath);
+		if (strlen(payloadFilePath) > 2) {
+			payload = malloc(10);
+			for(int i = 0; i < 10; i++) payload[i] = i + 1;
+			// TODO Read file and fill payload
+			free(payloadFilePath);
+>>>>>>> 22a4f03c11e85693699309885d59347d9426b35c
 		} else {
-			fprintf(stderr, "Wrong args: %s\n", argv[1]);
-			return -1;
+			mylib_menu_get_config(menu, menuPaylordSettingsCmd, &cmd);
+			mylib_menu_get_config(menu, menuPaylordSettingsData, &payload);
 		}
+		handle_clnt(payload, ip);
+		free(payload);
+	} else {
+		// pizdec
+		return -1;
 	}
-
-	if (flag_is_server) {
-		printf("-------------------- Running server --------------------\n");
-		ssize_t max_len = DEFAULT_MAX_LEN;
-		if (argc > 2)
-			max_len = atoi (argv[2]);
-		if (max_len <= 0)
-			max_len = DEFAULT_MAX_LEN;
-		Max_len = max_len;
-		return handle_server();
-	}
-	else {
-		printf("-------------------- Running clnt --------------------\n");
-		char* msg = DEFAULT_MSG;
-		Max_len = 2147483647;
-		if (argc > 2)
-			msg = argv[2];
-		return handle_clnt(msg); // TODO параметром должно передаваться сообщение (данные в пакете)
-	}
+	free(ip);
 	return 0;
 }
 
