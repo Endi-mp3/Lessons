@@ -3,6 +3,11 @@
 static MyLibMenu *menu;
 static int port = 44004;
 
+int default_callback(void* pvPtr)
+{
+	return 0;
+}
+
 int handle_clnt(const char* server_ip, int cmd, const char* payload)
 {
 	enum MySockRet res = my_sock_err_ok;
@@ -68,10 +73,10 @@ int main(int argc, char* argv[])
 	int menuButtonSlotStart = mylib_menu_create_button(menuButtonSlot, "Start", NULL);
 
 	MyLibMenu *menuTrigerSlot = mylib_menu_create_submenu(menu, "Triger Slot");
-	int menuTrigerSlotCheckBox1 = mylib_menu_create_checkbox(menuTrigerSlot, "chek box 1", true);
-    int menuTrigerSlotCheckBox2 = mylib_menu_create_checkbox(menuTrigerSlot, "chek box 2", true);
-    int menuTrigerSlotCheckBox3 = mylib_menu_create_checkbox(menuTrigerSlot, "chek box 3", true);
-    int menuTrigerSlotCheckBox4 = mylib_menu_create_checkbox(menuTrigerSlot, "chek box 4", true);
+	int menuTrigerSlotCheckBox1 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 1", true);
+    int menuTrigerSlotCheckBox2 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 2", true);
+    int menuTrigerSlotCheckBox3 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 3", true);
+    int menuTrigerSlotCheckBox4 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 4", true);
     int menuTrigerSlotStart = mylib_menu_create_button(menuTrigerSlot, "Start", NULL);
 
     MyLibMenu *menuRessetingDevive = mylib_menu_create_submenu(menu, "resseting the device");
@@ -107,7 +112,7 @@ int main(int argc, char* argv[])
 	}
 
 	endwin();
-	printf("Start\n");
+	printf("Menu finished\n");
 	char* ip;
 	mylib_menu_get_config(menu, menuSettingsPort, &port);
 	mylib_menu_get_config(menu, menuSettingsIP, &ip);

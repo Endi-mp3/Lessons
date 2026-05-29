@@ -20,10 +20,10 @@ typedef struct MyLibMenu MyLibMenu;
 typedef struct MyLibMenuItem MyLibMenuItem;
 
 /**
- * @typedef mymeny_button_callback_t
+ * @typedef mylib_meny_button_callback_t
  * @brief The menu callback type (pointer to function)
  */
-typedef int (*mymeny_button_callback_t)(void* pvPtr);
+typedef int (*mylib_meny_button_callback_t)(void* pvPtr);
 
 
 /**
@@ -58,7 +58,7 @@ struct MyLibMenuItem
         bool boolValue;
         char *strValue;
         MyLibMenu *submenu;
-        mymeny_button_callback_t callback;
+        mylib_meny_button_callback_t callback;
     } data;
     MyLibMenuItem *next;
 };
@@ -106,7 +106,7 @@ int mylib_menu_create_string(MyLibMenu* parentPtr, const char* title, const char
 // Special buttons
 int mylib_menu_create_exit_button(MyLibMenu* parentPtr, const char* title);
 int mylib_menu_create_start_button(MyLibMenu* parentPtr, const char* title);
-int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mymeny_button_callback_t cb);
+int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mylib_meny_button_callback_t cb);
 
 // Get config value by ID
 // это чтобы получить значение из настроек, ты получаешь его в указатель в resultPtr, но не забываем конвертацию типов

@@ -132,7 +132,7 @@ int mylib_menu_create_start_button(MyLibMenu* parentPtr, const char* title)
     return item->id;
 }
 
-int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mymeny_button_callback_t cb)
+int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mylib_meny_button_callback_t cb)
 {
     if (!parentPtr) return MYLIB_MENU_RET_ERROR;
 	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
@@ -312,11 +312,9 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 								break;
 							}
 						} else if (it->type == MYLIB_MENU_ITEM_BUTTON ) {
-							if (it->data.callback)
+							if (it->data.callback != NULL)
 								return it->data.callback(it);
-							else
-								return it->id;
-							break;
+							return it->id;
 						} else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
 							it->data.boolValue = !it->data.boolValue;
 							break;
