@@ -4,8 +4,10 @@
 #include "mylib_menu.h"
 #include "mylib_io.h"
 
+#define DEFAULT_PRIORITY (0)
+
 static int global_id_counter = 1;
-static int global_max_prio = 1;
+static int global_max_prio = 0;
 
 static MyLibMenuItem* s_create_libMenuItem(MyLibMenu* parentPtr, const char* title, int id, int prio, mylib_menu_item_type_t type)
 {
@@ -46,7 +48,7 @@ MyLibMenu *mylib_menu_create_submenu(MyLibMenu* parentPtr, const char* title)
     submenu->items = backBtn;
 
     // Add link in parent
-	MyLibMenuItem* item = s_create_libMenuItem(parentPtr, title, global_id_counter++, 0, MYLIB_MENU_ITEM_SUBMENU);
+	MyLibMenuItem* item = s_create_libMenuItem(parentPtr, title, global_id_counter++, DEFAULT_PRIORITY, MYLIB_MENU_ITEM_SUBMENU);
     item->data.submenu = submenu;
 	submenu->self = item;
     return submenu;
@@ -78,7 +80,7 @@ int mylib_menu_create_int_config(MyLibMenu* parentPtr, const char* title, int de
 	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
 												title,
 												global_id_counter++,
-												0,
+												DEFAULT_PRIORITY,
 												MYLIB_MENU_ITEM_CHECKBOX);
     item->data.intValue = defaultValue;
     return item->id;
@@ -90,7 +92,7 @@ int mylib_menu_create_checkbox(MyLibMenu* parentPtr, const char* title, bool def
 	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
 												title,
 												global_id_counter++,
-												0,
+												DEFAULT_PRIORITY,
 												MYLIB_MENU_ITEM_CHECKBOX);
     item->data.boolValue = defaultValue;
     return item->id;
@@ -102,7 +104,7 @@ int mylib_menu_create_string(MyLibMenu* parentPtr, const char* title, const char
 	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
 												title,
 												global_id_counter++,
-												0,
+												DEFAULT_PRIORITY,
 												MYLIB_MENU_ITEM_STRING);
     item->data.strValue = strdup(defaultValue ? defaultValue : "");
     return item->id;
@@ -114,7 +116,7 @@ int mylib_menu_create_exit_button(MyLibMenu* parentPtr, const char* title)
 	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
 												title ? title : "Quit",
 												MYLIB_MENU_RET_BTN_QUIT,
-												0,
+												DEFAULT_PRIORITY,
 												MYLIB_MENU_ITEM_BUTTON);
     return item->id;
 }
@@ -125,7 +127,7 @@ int mylib_menu_create_start_button(MyLibMenu* parentPtr, const char* title)
 	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
 												title ? title : "Start",
 												MYLIB_MENU_RET_BTN_START,
-												0,
+												DEFAULT_PRIORITY,
 												MYLIB_MENU_ITEM_BUTTON);
     return item->id;
 }
@@ -136,7 +138,7 @@ int mylib_menu_create_button(MyLibMenu* parentPtr, const char* title, mymeny_but
 	MyLibMenuItem* item = s_create_libMenuItem(parentPtr,
 												title,
 												global_id_counter++,
-												0,
+												DEFAULT_PRIORITY,
 												MYLIB_MENU_ITEM_BUTTON);
     item->data.callback = cb;
     return item->id;
@@ -205,10 +207,16 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
         // Отрисовка пунктов
         int idx = 0;
 		MyLibMenuItem* it;
-		for(int prio = 0; prio < global_max_prio; prio++) {
+		int currentLastPosition = 0;
+		for(int prio = 0; prio <= global_max_prio; prio++) {
 			it = current->items;
 			while (it) {
-				if (it->prio < 0 || it->prio != prio) continue;
+				if (it->prio < 0 || it->prio != prio) {
+					it = it->next;
+					continue;
+				}
+
+				it->position = currentLastPosition++;
 
 				if (idx == choice) wattron(w, A_REVERSE);
 
@@ -270,91 +278,82 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
                 choice = (choice + 1) % itemCount;
                 break;
             case KEY_LEFT:
-                {
-                    int i = 0;
-                    for (it = current->items; it; it = it->next, i++) {
-                        if (i == choice && it->type == MYLIB_MENU_ITEM_INT) {
-                            it->data.intValue -= 1;
-                            break;
-                        }
-                    }
-                }
+				for (it = current->items; it; it = it->next) {
+					if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
+						it->data.intValue -= 1;
+						break;
+					}
+				}
                 break;
             case KEY_RIGHT:
-                {
-                    int i = 0;
-                    for (it = current->items; it; it = it->next, i++) {
-                        if (i == choice && it->type == MYLIB_MENU_ITEM_INT) {
-                            it->data.intValue += 1;
-                            break;
-                        }
-                    }
-                }
+				for (it = current->items; it; it = it->next) {
+					if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
+						it->data.intValue += 1;
+						break;
+					}
+				}
                 break;
             case 10: // Enter
             case ' ':
-                {
-                    int i = 0;
-                    for (it = current->items; it; it = it->next, i++) {
-                        if (i == choice) {
-                            if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
-                                current = it->data.submenu;
-                                choice = 0;
-                                break;
-                            } else if (it->id == MYLIB_MENU_RET_BTN_QUIT) {
-                                return MYLIB_MENU_RET_BTN_QUIT;
-                            } else if (it->id == MYLIB_MENU_RET_BTN_START) {
-                                return MYLIB_MENU_RET_BTN_START;
-                            } else if (it->id == MYLIB_MENU_RET_BTN_BACK) {
-                                if (current->parent) {
-                                    current = current->parent;
-                                    choice = 0;
-                                    break;
-                                }
-                            } else if (it->type == MYLIB_MENU_ITEM_BUTTON ) {
-                                if (it->data.callback)
-									return it->data.callback(it);
-								else
-									return it->id;
-                                break;
-                            } else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
-                                it->data.boolValue = !it->data.boolValue;
-                                break;
-                            } else if (it->type == MYLIB_MENU_ITEM_INT) {
-                                echo();
-                                curs_set(1);
-                                char buf[32];
-                                if (split_id == -1) {
-                                    mvprintw(LINES-2, 0, "Input new number: ");
-                                    getnstr(buf, sizeof(buf)-1);
-                                } else {
-                                    mylib_io_print_at(split_id, idx+4, 2, "Input new number: ");
-                                    wgetnstr(w, buf, sizeof(buf)-1);
-                                }
-                                it->data.intValue = atoi(buf);
-                                noecho();
-                                curs_set(0);
-                                break;
-                            } else if (it->type == MYLIB_MENU_ITEM_STRING) {
-                                echo();
-                                curs_set(1);
-                                char buf[256];
-                                if (split_id == -1) {
-                                    mvprintw(LINES-2, 0, "Input new string: ");
-                                    getnstr(buf, sizeof(buf)-1);
-                                } else {
-                                    mylib_io_print_at(split_id, idx+4, 2, "Input new string: ");
-                                    wgetnstr(w, buf, sizeof(buf)-1);
-                                }
-                                free(it->data.strValue);
-                                it->data.strValue = strdup(buf);
-                                noecho();
-                                curs_set(0);
-                                break;
-                            }
-                        }
-                    }
-                }
+				for (it = current->items; it; it = it->next) {
+					if (it->position == choice) {
+						if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
+							current = it->data.submenu;
+							choice = 0;
+							break;
+						} else if (it->id == MYLIB_MENU_RET_BTN_QUIT) {
+							return MYLIB_MENU_RET_BTN_QUIT;
+						} else if (it->id == MYLIB_MENU_RET_BTN_START) {
+							return MYLIB_MENU_RET_BTN_START;
+						} else if (it->id == MYLIB_MENU_RET_BTN_BACK) {
+							if (current->parent) {
+								current = current->parent;
+								choice = 0;
+								break;
+							}
+						} else if (it->type == MYLIB_MENU_ITEM_BUTTON ) {
+							if (it->data.callback)
+								return it->data.callback(it);
+							else
+								return it->id;
+							break;
+						} else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
+							it->data.boolValue = !it->data.boolValue;
+							break;
+						} else if (it->type == MYLIB_MENU_ITEM_INT) {
+							echo();
+							curs_set(1);
+							char buf[32];
+							if (split_id == -1) {
+								mvprintw(LINES-2, 0, "Input new number: ");
+								getnstr(buf, sizeof(buf)-1);
+							} else {
+								mylib_io_print_at(split_id, idx+4, 2, "Input new number: ");
+								wgetnstr(w, buf, sizeof(buf)-1);
+							}
+							it->data.intValue = atoi(buf);
+							noecho();
+							curs_set(0);
+							break;
+						} else if (it->type == MYLIB_MENU_ITEM_STRING) {
+							echo();
+							curs_set(1);
+							char buf[256];
+							if (split_id == -1) {
+								mvprintw(LINES-2, 0, "Input new string: ");
+								getnstr(buf, sizeof(buf)-1);
+							} else {
+								mylib_io_print_at(split_id, idx+4, 2, "Input new string: ");
+								wgetnstr(w, buf, sizeof(buf)-1);
+							}
+							free(it->data.strValue);
+							it->data.strValue = strdup(buf);
+							noecho();
+							curs_set(0);
+							break;
+						}
+					}
+				}
                 break;
             case 27: // ESC
                 if (current->parent) {
@@ -398,7 +397,7 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
     }
 
     int idx = 0;
-	for(int prio = 0; prio < global_max_prio; prio++) {
+	for(int prio = 0; prio <= global_max_prio; prio++) {
 		for (MyLibMenuItem* it = current->items; it; it = it->next, idx++) {
 			if (it->prio < 0 || it->prio != prio) continue;
 
@@ -508,6 +507,8 @@ int mylib_menu_set_item_priority(MyLibMenu* rootPtr, int id, int prio)
 	while (it) {
 
 		if (it->id == id) {
+			if (prio > global_max_prio)
+				global_max_prio = prio;
 			it->prio = prio;
 			return 0;
 		}
@@ -551,6 +552,8 @@ int mylib_menu_id(MyLibMenu* menuPtr)
 int mylib_menu_set_menu_priority(MyLibMenu* menuPtr, int prio)
 {
 	if (menuPtr && menuPtr->self) {
+		if (prio > global_max_prio)
+			global_max_prio = prio;
 		menuPtr->self->prio = prio;
 		return 0;
 	}

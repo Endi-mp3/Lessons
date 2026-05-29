@@ -56,6 +56,9 @@ run: $(TGTDIR)/$(TARGET)
 run_clnt: $(TGTDIR)/$(TARGET)
 	./$< clnt "$(shell cat $(MSGFILE) )"
 
+lldb:
+	lldb $(TGTDIR)/$(TARGET)
+
 lldb_clnt: $(TGTDIR)/$(TARGET)
 	lldb $(TGTDIR)/$(TARGET) clnt "$(shell cat $(MSGFILE) )"
 

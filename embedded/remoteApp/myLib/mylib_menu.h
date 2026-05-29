@@ -52,6 +52,7 @@ struct MyLibMenuItem
     char *title;
     int id;
 	int prio;	///< Integer value of drawing prio. Lower better. **Lower than zero means: not show!**
+	int position;
     union {
         int intValue;
         bool boolValue;

@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     MyLibMenu *menuSettingWIFIconnect = mylib_menu_create_submenu(menuSettingWIFI, "WIFI");
     int menuSettingsWifiName = mylib_menu_create_string (menuSettingWIFIconnect, "name", "HUAWEI-D8Yk");
     int menuSettingsWifiSid = mylib_menu_create_string (menuSettingWIFIconnect, "pasword", "1111111");
-    
+
     MyLibMenu *menuSettingBLE = mylib_menu_create_submenu(menuSettingNetwork, "Setting BLE");
     MyLibMenu *menuSettingBLEconnect = mylib_menu_create_submenu(menuSettingBLE, "BLE");
 
@@ -73,28 +73,26 @@ int main(int argc, char* argv[])
     int menuTrigerSlotCheckBox3 = mylib_menu_create_checkbox(menuTrigerSlot, "chek box 3", true);
     int menuTrigerSlotCheckBox4 = mylib_menu_create_checkbox(menuTrigerSlot, "chek box 4", true);
     int menuTrigerSlotStart = mylib_menu_create_button(menuTrigerSlot, "Start", NULL);
-    
+
     MyLibMenu *menuRessetingDevive = mylib_menu_create_submenu(menu, "resseting the device");
     int menuRessetingDeviveFull= mylib_menu_create_button(menuRessetingDevive, "full reset", NULL);
     int menuRessetingDeviveCleaneSlot= mylib_menu_create_button(menuRessetingDevive, "cleane slot", NULL);
-    
+
     int menuMonitoring= mylib_menu_create_button(menu, "monitoring", NULL);
-    
+
     MyLibMenu *menuConnectionSettings = mylib_menu_create_submenu(menu, "connection setting");
     int menuSettingsIP = mylib_menu_create_string (menuConnectionSettings, "IP", "192.168.88.24");
 	int menuSettingsPort = mylib_menu_create_int_config(menuConnectionSettings, "Port", 3344);
-    
-    
-    
-    
-    
-    
+
 	MyLibMenu *menuClientSettingsPayload = mylib_menu_create_submenu(menu, "Payload setting");
 	int menuPayloadSettingsCmd = mylib_menu_create_int_config(menuClientSettingsPayload, "Command code:", 01);
 	int menuPayloadSettingsData = mylib_menu_create_string(menuClientSettingsPayload, "Data:", "0102030405060");
 	int menuClientSettingsSend = mylib_menu_create_button(menuClientSettingsPayload, "[ SEND PACKET ]", NULL);
 
-	mylib_menu_create_exit_button(menu, "Quit");
+	int menuButtonQuit = mylib_menu_create_exit_button(menu, "Quit");
+
+	mylib_menu_set_item_priority(menu, menuButtonQuit, 1);
+
     MyLibMenu *current_menu = menu;
 
 	MyLibMenuReturnCode_t showResult = mylib_menu_show(menu, -1);
