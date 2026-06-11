@@ -18,10 +18,6 @@ int callback_on_receive(char* buffer, uint32_t* length)
 	{
 	case my_sock_cmd_slot_assign:
 		
-		
-		
-		
-		
 		// pseudo code
 		// form success answer package
 		// form error answer package

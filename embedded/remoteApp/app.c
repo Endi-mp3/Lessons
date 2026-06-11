@@ -1,7 +1,69 @@
 #include "my_socket_lib.h"
+#include "my_socket_proto.h"
 
 static MyLibMenu *menu;
 static int port = 44004;
+int menuSettingsPort, menuSettingsIP;
+
+int cb_button_slot_start(void* pvPtr)
+{
+    char* ip ;
+    char* slot_name = NULL;
+
+    mylib_menu_get_config(menu, menuSettingsIP, &ip);
+    mylib_menu_get_config(menu, menuSettingsPort, &port);
+    mylib_menu_get_config(menu, menuButtonSlotAdd, &slot_name);
+ 
+    int sock = my_sock_init_client(ip, port);
+    if (sock >= 0) {
+        
+        my_sock_send(sock, 0x02, cmd_start_slot, strlen(slot_name) + 1, (void*)slot_name);
+        my_close(sock, "slot start");
+    }
+    return 0;
+}
+
+
+int cb_monitoring(void* pvPtr)
+{
+	char* ip;
+	mylib_menu_get_config(menu, menuSettingsPort, &port);
+	mylib_menu_get_config(menu, menuSettingsIP, &ip);
+	uint8_t buf[4] = {0x1, 0x10, 0x20, 0x30};
+	int sock = my_sock_init_client(ip, port);
+	my_sock_send(sock, 0x1, my_sock_cmd_watcher_settings, strlen(buf), (void*)buf);
+	return 0;
+}
+
+int cb_device_full_reset(void* pvPtr)
+{
+	char* ip;
+    mylib_menu_get_config(menu, menuSettingsIP, &ip);
+    mylib_menu_get_config(menu, menuSettingsPort, &port);
+
+
+    int sock = my_sock_init_client(ip, port);
+    if (sock >= 0) {
+        my_sock_send(sock, 0x04, cmd_full_reset, 0, NULL); /
+        my_close(sock, "reset sock");
+    }
+    return 0;
+}
+
+int cb_device_clean_slot(void* pvPtr)
+{
+	char* ip;
+    mylib_menu_get_config(menu, menuSettingsIP, &ip);
+    mylib_menu_get_config(menu, menuSettingsPort, &port);
+
+
+    int sock = my_sock_init_client(ip, port);
+    if (sock >= 0) {
+        my_sock_send(sock, 0x04, cmd_clean_slot, 0, NULL); 
+    }
+    return 0;
+}
+
 
 int default_callback(void* pvPtr)
 {
@@ -65,12 +127,13 @@ int main(int argc, char* argv[])
     int menuSettingsWifiName = mylib_menu_create_string (menuSettingWIFIconnect, "name", "HUAWEI-D8Yk");
     int menuSettingsWifiSid = mylib_menu_create_string (menuSettingWIFIconnect, "pasword", "1111111");
 
+
     MyLibMenu *menuSettingBLE = mylib_menu_create_submenu(menuSettingNetwork, "Setting BLE");
     MyLibMenu *menuSettingBLEconnect = mylib_menu_create_submenu(menuSettingBLE, "BLE");
 
     MyLibMenu *menuButtonSlot = mylib_menu_create_submenu(menu, "Slot Setting");
 	int menuButtonSlotAdd = mylib_menu_create_string (menuButtonSlot, "name slot", "new name");
-	int menuButtonSlotStart = mylib_menu_create_button(menuButtonSlot, "Start", NULL);
+	int menuButtonSlotStart = mylib_menu_create_button(menuButtonSlot, "Start", cb_button_slot_start);
 
 	MyLibMenu *menuTrigerSlot = mylib_menu_create_submenu(menu, "Triger Slot");
 	int menuTrigerSlotCheckBox1 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 1", true);
@@ -80,14 +143,14 @@ int main(int argc, char* argv[])
     int menuTrigerSlotStart = mylib_menu_create_button(menuTrigerSlot, "Start", NULL);
 
     MyLibMenu *menuRessetingDevive = mylib_menu_create_submenu(menu, "resseting the device");
-    int menuRessetingDeviveFull= mylib_menu_create_button(menuRessetingDevive, "full reset", NULL);
-    int menuRessetingDeviveCleaneSlot= mylib_menu_create_button(menuRessetingDevive, "cleane slot", NULL);
+    int menuRessetingDeviveFull= mylib_menu_create_button(menuRessetingDevive, "full reset", cb_device_full_reset);
+    int menuRessetingDeviveCleaneSlot= mylib_menu_create_button(menuRessetingDevive, "cleane slot", cb_device_clean_slot);
 
-    int menuMonitoring= mylib_menu_create_button(menu, "monitoring", NULL);
+    int menuMonitoring= mylib_menu_create_button(menu, "Monitoring", cb_monitoring);
 
     MyLibMenu *menuConnectionSettings = mylib_menu_create_submenu(menu, "connection setting");
-    int menuSettingsIP = mylib_menu_create_string (menuConnectionSettings, "IP", "192.168.88.24");
-	int menuSettingsPort = mylib_menu_create_int_config(menuConnectionSettings, "Port", 3344);
+    menuSettingsIP = mylib_menu_create_string (menuConnectionSettings, "IP", "192.168.88.24");
+	menuSettingsPort = mylib_menu_create_int_config(menuConnectionSettings, "Port", 3344);
 
 	MyLibMenu *menuClientSettingsPayload = mylib_menu_create_submenu(menu, "Payload setting");
 	int menuPayloadSettingsCmd = mylib_menu_create_int_config(menuClientSettingsPayload, "Command code:", 01);
@@ -96,7 +159,15 @@ int main(int argc, char* argv[])
 
 	int menuButtonQuit = mylib_menu_create_exit_button(menu, "Quit");
 
-	mylib_menu_set_item_priority(menu, menuButtonQuit, 1);
+	mylib_menu_set_item_priority(menu, menuButtonQuit, 7);
+	mylib_menu_set_item_priority(menu, menuMonitoring, 4);
+	mylib_menu_set_menu_priority(menuSettingNetwork, 0);
+	mylib_menu_set_menu_priority(menuButtonSlot, 1);
+	mylib_menu_set_menu_priority(menuTrigerSlot, 2);
+	mylib_menu_set_menu_priority(menuRessetingDevive, 3);
+	mylib_menu_set_menu_priority(menuConnectionSettings, 5);
+	mylib_menu_set_menu_priority(menuClientSettingsPayload, 6);
+
 
     MyLibMenu *current_menu = menu;
 
