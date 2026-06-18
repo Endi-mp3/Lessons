@@ -5,7 +5,7 @@ static MyLibMenu *menu;
 static int port = 44004;
 int menuSettingsPort, menuSettingsIP;
 
-int cb_button_slot_start(void* pvPtr)
+int cb_button_triger_slot_menu(void* pvPtr)
 {
     char* ip ;
     char* slot_name = NULL;
@@ -17,9 +17,16 @@ int cb_button_slot_start(void* pvPtr)
     int sock = my_sock_init_client(ip, port);
     if (sock >= 0) {
         
-        my_sock_send(sock, 0x02, cmd_start_slot, strlen(slot_name) + 1, (void*)slot_name);
-        my_close(sock, "slot start");
+        my_sock_send(sock, 0x02, cmd_update_slot, strlen(slot_name) + 1, (void*)slot_name);
+        
     }
+    
+    struct Packet* my_sock_recv(sock, 4096)
+    if (pkt == NULL){
+	my_close(sock, "slot error")
+	}
+	
+	
     return 0;
 }
 
@@ -33,6 +40,21 @@ int cb_monitoring(void* pvPtr)
 	int sock = my_sock_init_client(ip, port);
 	my_sock_send(sock, 0x1, my_sock_cmd_watcher_settings, strlen(buf), (void*)buf);
 	return 0;
+}
+
+int cb_device_full_reset(void* pvPtr)
+{
+	char* ip;
+    mylib_menu_get_config(menu, menuSettingsIP, &ip);
+    mylib_menu_get_config(menu, menuSettingsPort, &port);
+
+
+    int sock = my_sock_init_client(ip, port);
+    if (sock >= 0) {
+        my_sock_send(sock, 0x04, cmd_full_reset, 0, NULL); /
+        my_close(sock, "reset sock");
+    }
+    return 0;
 }
 
 int cb_device_full_reset(void* pvPtr)
@@ -134,8 +156,9 @@ int main(int argc, char* argv[])
     MyLibMenu *menuButtonSlot = mylib_menu_create_submenu(menu, "Slot Setting");
 	int menuButtonSlotAdd = mylib_menu_create_string (menuButtonSlot, "name slot", "new name");
 	int menuButtonSlotStart = mylib_menu_create_button(menuButtonSlot, "Start", cb_button_slot_start);
-
-	MyLibMenu *menuTrigerSlot = mylib_menu_create_submenu(menu, "Triger Slot");
+	
+	int menuTrigerSlot = mylib_menu_create_submenu(menu, "Triger Slot", cb_button_triger_slot_menu);
+	
 	int menuTrigerSlotCheckBox1 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 1", true);
     int menuTrigerSlotCheckBox2 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 2", true);
     int menuTrigerSlotCheckBox3 = mylib_menu_create_checkbox(menuTrigerSlot, "checkbox 3", true);
