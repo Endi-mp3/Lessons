@@ -22,13 +22,16 @@ enum MySockCommands
 	my_sock_cmd_slot_clean,
 	my_sock_cmd_slot_clean_all,
 	my_sock_cmd_watcher_settings,
-	my_sock_cmd_wifi_settings
+	my_sock_cmd_wifi_settings,
+	my_sock_cmd_update_slot,
+	my_sock_cmd_full_reset
+
 };
 
 #pragma pack(push, 1)
 struct Header
 {
-    uint8_t cmd; /// enum MySockCommands
+    int8_t cmd; /// enum MySockCommands
     uint16_t id;
     uint32_t len;
 //	uint32_t pack_num; // 4
