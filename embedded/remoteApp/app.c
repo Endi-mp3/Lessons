@@ -14,10 +14,52 @@ struct MenuNetwork {
     int WifiName;
     int WifiSid;
 } menuNetCtx = { -1, -1, NULL, NULL, NULL, -1, -1 };
+
+struct MenuButtonSlot {
+	MyLibMenu *ButtonSlot;
+	int SlotName;
+	int SlotBtnStart;
+} menuBtnSlt = {NULL, -1, -1};
+
+struct MenuTrigerSlot {
+	MyLibMenu *TrigerSlot;
+	int TrigerBtn;
+	int TrigerBtnStart;
+} menuTrigSlt = {NULL, -1, -1};
+
+struct MenuRessetingDevice {
+	MyLibMenu *RessetDevice;
+	int FullReset;
+	int CleanSlot;
+} menuRessetDev = {NULL, -1, -1};
+
+struct MenuSettingsPayload {
+	MyLibMenu *SettingsPayload;
+	int SettingCmd;
+	int SettingData;
+	int SettingSend;
+} menuSettingsPayload = {NULL, -1, -1, -1};
+
 int menuButtonSlotAdd, menuButtonSlotStart;
 
 int cb_button_triger_slot_menu(void* __attribute((unused)) pvPtr)
 {
+	struct Packet *pkt = NULL;
+	char* ip;
+	mylib_menu_get_config(menu, menuNetCtx.Port, &port);
+	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
+    int sock = my_sock_init_client(ip, port);
+    if (sock >= 0) {
+    my_sock_send(sock, 0x04, 0x02, 0, NULL);  		//my_sock_cmd_triger_menu
+	pkt = my_sock_recv(sock, 4096);
+	my_close(sock, "triger slot");
+	
+    
+    
+    
+    
+    }
+	
    return 0;
 }
 
@@ -120,19 +162,18 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
     menuNetCtx.WifiName = mylib_menu_create_string (menuNetCtx.WIFIconnect, "name", "HUAWEI-D8Yk");
     menuNetCtx.WifiSid = mylib_menu_create_string (menuNetCtx.WIFIconnect, "pasword", "1111111");
 
-    MyLibMenu *menuButtonSlot = mylib_menu_create_submenu(menu, "Slot Setting");
-	menuButtonSlotAdd = mylib_menu_create_string (menuButtonSlot, "name slot", "new name");
-	menuButtonSlotStart = mylib_menu_create_button(menuButtonSlot, "Start listen new IR signal", NULL);
-
-	int menuButtonTriggerSlot = mylib_menu_create_button(menu, "Triger Slot", NULL);
-
-	MyLibMenu *menuTrigerSlot = mylib_menu_create("TriggerSlot");
-
-    int menuTrigerSlotStart = mylib_menu_create_button(menuTrigerSlot, "Start", NULL);
-
-    MyLibMenu *menuRessetingDevive = mylib_menu_create_submenu(menu, "resseting the device");
-    int menuRessetingDeviveFull= mylib_menu_create_button(menuRessetingDevive, "full reset", cb_device_full_reset);
-    int menuRessetingDeviveCleaneSlot= mylib_menu_create_button(menuRessetingDevive, "cleane slot", cb_device_clean_slot);
+	menuBtnSlt.ButtonSlot = mylib_menu_create_submenu(menu, "Slot Setting");
+	menuBtnSlt.SlotName = mylib_menu_create_string(menuBtnSlt.ButtonSlot, "name slot", "new name");
+	menuBtnSlt.SlotBtnStart = mylib_menu_create_button(menuBtnSlt.ButtonSlot, "Start listen new IR signal", NULL);  
+	
+	menuTrigSlt.TrigerBtn = mylib_menu_create_button(menu, "Triger Slot", NULL);
+	menuTrigSlt.TrigerSlot = mylib_menu_create("TriggerSlot");
+	menuTrigSlt.TrigerBtnStart = mylib_menu_create_button(menuTrigSlt.TrigerSlot, "Start", NULL);
+	
+	menuRessetDev.RessetDevice = mylib_menu_create_submenu(menu, "resseting the device");
+	menuRessetDev.FullReset = mylib_menu_create_button(menuRessetDev.RessetDevice, "full reset", cb_device_full_reset);
+	menuRessetDev.CleanSlot = mylib_menu_create_button(menuRessetDev.RessetDevice, "cleane slot", cb_device_clean_slot);
+	
 
     int menuMonitoring= mylib_menu_create_button(menu, "Monitoring", cb_monitoring);
 
@@ -140,21 +181,22 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
     menuNetCtx.IP = mylib_menu_create_string (menuConnectionSettings, "IP", "192.168.88.24");
 	menuNetCtx.Port = mylib_menu_create_int_config(menuConnectionSettings, "Port", 3344);
 
-	MyLibMenu *menuClientSettingsPayload = mylib_menu_create_submenu(menu, "Payload setting");
-	int menuPayloadSettingsCmd = mylib_menu_create_int_config(menuClientSettingsPayload, "Command code:", 01);
-	int menuPayloadSettingsData = mylib_menu_create_string(menuClientSettingsPayload, "Data:", "0102030405060");
-	int menuClientSettingsSend = mylib_menu_create_button(menuClientSettingsPayload, "[ SEND PACKET ]", NULL);
+	menuSettingsPayload.SettingsPayload = mylib_menu_create_submenu(menu, "Payload setting");
+	menuSettingsPayload.SettingCmd = mylib_menu_create_int_config(menuSettingsPayload.SettingsPayload, "Command code:", 01);
+	menuSettingsPayload.SettingData = mylib_menu_create_string(menuSettingsPayload.SettingsPayload, "Data:", "0102030405060");
+	menuSettingsPayload.SettingSend = mylib_menu_create_button(menuSettingsPayload.SettingsPayload, "[ SEND PACKET ]", NULL);
 
+	
 	int menuButtonQuit = mylib_menu_create_exit_button(menu, "Quit");
 
 	mylib_menu_set_item_priority(menu, menuButtonQuit, 7);
 	mylib_menu_set_item_priority(menu, menuMonitoring, 4);
 	mylib_menu_set_menu_priority(menuNetCtx.Network, 0);
-	mylib_menu_set_menu_priority(menuButtonSlot, 1);
-//	mylib_menu_set_menu_priority(menuButtonTriggerSlot, 2);
-	mylib_menu_set_menu_priority(menuRessetingDevive, 3);
+	mylib_menu_set_menu_priority(menuBtnSlt.ButtonSlot, 1);
+//	mylib_menu_set_menu_priority(menuTrigSlt.TrigerBtn, 2);
+	mylib_menu_set_menu_priority(menuRessetDev.RessetDevice, 3);
 	mylib_menu_set_menu_priority(menuConnectionSettings, 5);
-	mylib_menu_set_menu_priority(menuClientSettingsPayload, 6);
+	mylib_menu_set_menu_priority(menuSettingsPayload.SettingsPayload, 6);
 
     // MyLibMenu *current_menu = menu;
 
@@ -174,7 +216,7 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	char* ip;
 
 	printf("showResult = %i\n", showResult);
-	if (showResult == menuButtonTriggerSlot) {
+	if (showResult == menuTrigSlt.TrigerBtn) {
 		char* ip ;
 		char* slot_name = NULL;
 
@@ -195,7 +237,7 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 		*/
 
 
-		showResult = mylib_menu_show(menuTrigerSlot, -1);
+		showResult = mylib_menu_show(menuTrigSlt.TrigerSlot, -1);
 		endwin();
 		printf("Menu finished\n");
 		/*
@@ -215,12 +257,12 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 
 	mylib_menu_get_config(menu, menuNetCtx.Port, &port);
 	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
-	if (showResult == menuClientSettingsSend) {
+	if (showResult == menuSettingsPayload.SettingSend) {
 		uint8_t *payload;
 		int cmd;
 		char *payloadFilePath;
-		mylib_menu_get_config(menu, menuPayloadSettingsCmd, &cmd);
-		mylib_menu_get_config(menu, menuPayloadSettingsData, &payload);
+		mylib_menu_get_config(menu, menuSettingsPayload.SettingCmd, &cmd);
+		mylib_menu_get_config(menu, menuSettingsPayload.SettingData, &payload);
 		handle_clnt(ip, cmd, payload);
 		free(payload);
 
