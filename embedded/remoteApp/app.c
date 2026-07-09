@@ -50,16 +50,10 @@ int cb_button_triger_slot_menu(void* __attribute((unused)) pvPtr)
 	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
     int sock = my_sock_init_client(ip, port);
     if (sock >= 0) {
-    my_sock_send(sock, 0x04, 0x02, 0, NULL);  		//my_sock_cmd_triger_menu
-	pkt = my_sock_recv(sock, 4096);
-	my_close(sock, "triger slot");
-	
-    
-    
-    
-    
+		my_sock_send(sock, 0x04, 0x02, 0, NULL);  		//my_sock_cmd_triger_menu
+		pkt = my_sock_recv(sock, 4096);
+		my_close(sock, "triger slot");
     }
-	
    return 0;
 }
 

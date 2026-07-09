@@ -3,6 +3,8 @@ TARGET   := remoteApp
 BUILDDIR ?= .build
 OBJDIR   := $(BUILDDIR)/obj
 TGTDIR   := $(BUILDDIR)
+TMPDIR   := $(BUILDDIR)
+LOGERR   := $(TMPDIR)/log.error
 
 # ==== Compiler and flags ====
 CC      := gcc
@@ -39,7 +41,7 @@ $(TGTDIR):
 
 # ==== Run the program ====
 test: $(TGTDIR)/$(TARGET)
-	./$<
+	./$< 2>$(LOGERR)
 
 run_srv: $(TGTDIR)/$(TARGET)
 	./$< server 256
