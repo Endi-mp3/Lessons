@@ -104,22 +104,22 @@ int handle_clnt(const char* server_ip, int cmd, const char* payload)
 	enum MySockRet res = my_sock_err_ok;
 	int sock = my_sock_init_client(server_ip, port);
 	// send routine
-	printf("Send to server...");
+	fprintf(stderr,"Send to server...");
 	my_sock_send(sock, 0xDEAD, cmd, strlen(payload), (void*)payload);
-	printf(".done\n");
+	fprintf(stderr,".done\n");
 	// recv routine
-	printf("Recv from server...");
+	fprintf(stderr,"Recv from server...");
 	struct Packet *pkt = my_sock_recv(sock, 4096);
 	if (pkt == NULL) {
 		my_close(sock, "sock");
-		printf(".failed\n");
+		fprintf(stderr,".failed\n");
 		return my_sock_err_recv;
 	}
 
-	printf(".done\n");
+	fprintf(stderr,".done\n");
 	switch (pkt->header.cmd) {
 		case my_sock_cmd_err:
-			fprintf(stderr, "Got failed response: %02x\n", pkt->data[0]);
+			fprintf(stderr,stderr, "Got failed response: %02x\n", pkt->data[0]);
 			res = my_sock_err_error;
 			break;
 			break;
@@ -200,16 +200,16 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 			endwin();
 			return 0;
 		case MYLIB_MENU_RET_ERROR:
-			printf("%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
+			fprintf(stderr,"%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
 			endwin();
 			return 0;
 	}
 
 	endwin();
-	printf("Menu finished\n");
+	fprintf(stderr,"Menu finished\n");
 	char* ip;
 
-	printf("showResult = %i\n", showResult);
+	fprintf(stderr,"showResult = %i\n", showResult);
 	if (showResult == menuTrigSlt.TrigerBtn) {
 		char* ip ;
 		char* slot_name = NULL;
@@ -233,7 +233,7 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 
 		showResult = mylib_menu_show(menuTrigSlt.TrigerSlot, -1);
 		endwin();
-		printf("Menu finished\n");
+		fprintf(stderr,"Menu finished\n");
 		/*
 		if (showResult == start) {
 			// send slot triggers
