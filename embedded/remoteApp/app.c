@@ -25,13 +25,14 @@ struct MenuTrigerSlot {
 	MyLibMenu *TrigerSlot;
 	int TrigerBtn;
 	int TrigerBtnStart;
+	int TrigerBtnQuit;
 } menuTrigSlt = {NULL, -1, -1};
 
 struct MenuRessetingDevice {
-	MyLibMenu *RessetDevice;
+	MyLibMenu *ResetDevice;
 	int FullReset;
 	int CleanSlot;
-} menuRessetDev = {NULL, -1, -1};
+} menuResetDev = {NULL, -1, -1};
 
 struct MenuSettingsPayload {
 	MyLibMenu *SettingsPayload;
@@ -39,6 +40,21 @@ struct MenuSettingsPayload {
 	int SettingData;
 	int SettingSend;
 } menuSettingsPayload = {NULL, -1, -1, -1};
+
+struct MyMenuParams
+{
+	struct MenuNetwork netCtx;
+	struct MenuButtonSlot btnSlt;
+	struct MenuTrigerSlot trigSlot;
+	struct MenuRessetingDevice resetDev;
+	struct MenuSettingsPayload settingsPayload;
+} g_menu = {
+	{ -1, -1, NULL, NULL, NULL, -1, -1 },
+	{NULL, -1, -1},
+	{NULL, -1, -1},
+	{NULL, -1, -1},
+	{NULL, -1, -1, -1}
+};
 
 int menuButtonSlotAdd, menuButtonSlotStart;
 
@@ -76,7 +92,7 @@ int cb_device_full_reset(void* __attribute((unused)) pvPtr)
 	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
     int sock = my_sock_init_client(ip, port);
     if (sock >= 0) {
-        my_sock_send(sock, 0x04, my_sock_cmd_full_reset, 0, NULL); 
+        my_sock_send(sock, 0x04, my_sock_cmd_full_reset, 0, NULL);
         my_close(sock, "reset sock");
     }
     return 0;
@@ -89,8 +105,26 @@ int cb_device_clean_slot(void* __attribute((unused)) pvPtr)
 	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
     int sock = my_sock_init_client(ip, port);
     if (sock >= 0) {
-        my_sock_send(sock, 0x04, my_sock_cmd_slot_clean, 0, NULL);
-    }
+		fprintf(stderr, "%s %i\n", __FUNCTION__, __LINE__);
+        my_sock_send(sock, 0x04, my_sock_cmd_slot_clean_all, 0, NULL);
+		fprintf(stderr, "%s %i\n", __FUNCTION__, __LINE__);
+		struct Packet* pkt;
+		pkt = my_sock_recv(sock, 256);
+		if (pkt->data[0] == my_sock_err_ok) {
+		fprintf(stderr, "%s %i\n", __FUNCTION__, __LINE__);
+			// TODO show in myLibConsole result
+		} else {
+		fprintf(stderr, "%s %i\n", __FUNCTION__, __LINE__);
+			// TODO show in myLibConsole result
+		}
+		my_close(sock, "CleanSlots");
+		fprintf(stderr, "%s %i\n", __FUNCTION__, __LINE__);
+    } else {
+		fprintf(stderr, "%s %i\n", __FUNCTION__, __LINE__);
+		fprintf(stderr, "can't open socket\n");
+		return -1;
+	}
+		fprintf(stderr, "%s %i\n", __FUNCTION__, __LINE__);
     return 0;
 }
 
@@ -150,29 +184,33 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 
     menu = mylib_menu_create("Menu Setting");
 
+	// Menu Network setup
     menuNetCtx.Network = mylib_menu_create_submenu(menu, "Setting WIFI/BLE");
     menuNetCtx.WIFI = mylib_menu_create_submenu(menuNetCtx.Network, "Setting WIFI");
     menuNetCtx.WIFIconnect = mylib_menu_create_submenu(menuNetCtx.WIFI, "WIFI");
-    menuNetCtx.WifiName = mylib_menu_create_string (menuNetCtx.WIFIconnect, "name", "HUAWEI-D8Yk");
-    menuNetCtx.WifiSid = mylib_menu_create_string (menuNetCtx.WIFIconnect, "pasword", "1111111");
+    menuNetCtx.WifiName = mylib_menu_create_string (menuNetCtx.WIFIconnect, "Name", "HUAWEI-D8Yk");
+    menuNetCtx.WifiSid = mylib_menu_create_string (menuNetCtx.WIFIconnect, "Pasword", "1111111");
 
+	// Menu Buttons slots setup
 	menuBtnSlt.ButtonSlot = mylib_menu_create_submenu(menu, "Slot Setting");
-	menuBtnSlt.SlotName = mylib_menu_create_string(menuBtnSlt.ButtonSlot, "name slot", "new name");
-	menuBtnSlt.SlotBtnStart = mylib_menu_create_button(menuBtnSlt.ButtonSlot, "Start listen new IR signal", NULL);  
-	
+	menuBtnSlt.SlotName = mylib_menu_create_string(menuBtnSlt.ButtonSlot, "Name slot", "new name");
+	menuBtnSlt.SlotBtnStart = mylib_menu_create_button(menuBtnSlt.ButtonSlot, "Start listen new IR signal", NULL);
+
+	// Menu Trigger slots setup
 	menuTrigSlt.TrigerBtn = mylib_menu_create_button(menu, "Triger Slot", NULL);
 	menuTrigSlt.TrigerSlot = mylib_menu_create("TriggerSlot");
 	menuTrigSlt.TrigerBtnStart = mylib_menu_create_button(menuTrigSlt.TrigerSlot, "Start", NULL);
-	
-	menuRessetDev.RessetDevice = mylib_menu_create_submenu(menu, "resseting the device");
-	menuRessetDev.FullReset = mylib_menu_create_button(menuRessetDev.RessetDevice, "full reset", cb_device_full_reset);
-	menuRessetDev.CleanSlot = mylib_menu_create_button(menuRessetDev.RessetDevice, "cleane slot", cb_device_clean_slot);
-	
+	menuTrigSlt.TrigerBtnQuit  = mylib_menu_create_exit_button(menuTrigSlt.TrigerSlot, "Back");
+	// Menu Resset device setup
+	menuResetDev.ResetDevice = mylib_menu_create_submenu(menu, "Reseting the device");
+	menuResetDev.FullReset = mylib_menu_create_button(menuResetDev.ResetDevice, "Full reset", cb_device_full_reset);
+	menuResetDev.CleanSlot = mylib_menu_create_button(menuResetDev.ResetDevice, "Clean slot", cb_device_clean_slot);
 
-    int menuMonitoring= mylib_menu_create_button(menu, "Monitoring", cb_monitoring);
 
-    MyLibMenu *menuConnectionSettings = mylib_menu_create_submenu(menu, "connection setting");
-    menuNetCtx.IP = mylib_menu_create_string (menuConnectionSettings, "IP", "192.168.88.24");
+    int menuMonitoring = mylib_menu_create_button(menu, "Monitoring", cb_monitoring);
+
+    MyLibMenu *menuConnectionSettings = mylib_menu_create_submenu(menu, "Connection setting");
+    menuNetCtx.IP = mylib_menu_create_string (menuConnectionSettings, "IP", "192.168.88.230");
 	menuNetCtx.Port = mylib_menu_create_int_config(menuConnectionSettings, "Port", 3344);
 
 	menuSettingsPayload.SettingsPayload = mylib_menu_create_submenu(menu, "Payload setting");
@@ -180,7 +218,6 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	menuSettingsPayload.SettingData = mylib_menu_create_string(menuSettingsPayload.SettingsPayload, "Data:", "0102030405060");
 	menuSettingsPayload.SettingSend = mylib_menu_create_button(menuSettingsPayload.SettingsPayload, "[ SEND PACKET ]", NULL);
 
-	
 	int menuButtonQuit = mylib_menu_create_exit_button(menu, "Quit");
 
 	mylib_menu_set_item_priority(menu, menuButtonQuit, 7);
@@ -188,13 +225,15 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	mylib_menu_set_menu_priority(menuNetCtx.Network, 0);
 	mylib_menu_set_menu_priority(menuBtnSlt.ButtonSlot, 1);
 //	mylib_menu_set_menu_priority(menuTrigSlt.TrigerBtn, 2);
-	mylib_menu_set_menu_priority(menuRessetDev.RessetDevice, 3);
+	mylib_menu_set_menu_priority(menuResetDev.ResetDevice, 3);
 	mylib_menu_set_menu_priority(menuConnectionSettings, 5);
 	mylib_menu_set_menu_priority(menuSettingsPayload.SettingsPayload, 6);
 
     // MyLibMenu *current_menu = menu;
+showMainMenu:
 
 	MyLibMenuReturnCode_t showResult = mylib_menu_show(menu, -1);
+	fprintf(stderr, "%s %i showRes %i\n", __FUNCTION__, __LINE__, (int)showResult);
 	switch(showResult) {
 		case MYLIB_MENU_RET_BTN_QUIT:
 			endwin();
@@ -229,23 +268,23 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 			my_close(sock, "slot error");
 		}
 		*/
-
-
+		// TODO CREATE BUTTONS HERE DEPENDING ON data from device
+showTriggerMenu:
 		showResult = mylib_menu_show(menuTrigSlt.TrigerSlot, -1);
 		endwin();
-		fprintf(stderr,"Menu finished\n");
-		/*
-		if (showResult == start) {
+		if (showResult == MYLIB_MENU_RET_BTN_QUIT) {
 			// send slot triggers
 			// show result (optional)
 			// return back to same menu menuTriggerSlot
+			goto showMainMenu;
 		}
-		else (showResult == back) {
+		else {
 			// close menuTriggerSlot
 			// clean slots info
 			// return back to previous menu
+			fprintf(stderr, "Finish showResult = mylib_menu_show(menuTrigSlt.TrigerSlot, -1);\n");
+			goto showTriggerMenu;
 		}
-		*/
 		return 0;
 	}
 

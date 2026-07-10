@@ -31,6 +31,7 @@ typedef int (*mylib_meny_button_callback_t)(void* pvPtr);
  * @brief Possible menu return values
  */
 typedef enum {
+	MYLIB_MENU_RET_CB_CONTINUE = -5, ///< Go back to menu after finishing callback
     MYLIB_MENU_RET_BTN_BACK  = -4, ///< Back button pressed
     MYLIB_MENU_RET_BTN_START = -3, ///< Start button pressed
     MYLIB_MENU_RET_BTN_QUIT  = -2, ///< Quit button pressed

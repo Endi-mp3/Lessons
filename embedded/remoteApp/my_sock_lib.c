@@ -1,6 +1,5 @@
 #include "my_socket_lib.h"
 
-
 void* my_malloc_fn(size_t size, const char* __attribute((unused)) what, const char*__attribute((unused)) where, int __attribute((unused)) line)
 {
 	void* tmp_ptr = malloc(size);

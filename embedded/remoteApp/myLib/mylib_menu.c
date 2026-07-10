@@ -81,7 +81,7 @@ int mylib_menu_create_int_config(MyLibMenu* parentPtr, const char* title, int de
 												title,
 												global_id_counter++,
 												DEFAULT_PRIORITY,
-												MYLIB_MENU_ITEM_CHECKBOX);
+												MYLIB_MENU_ITEM_INT);
     item->data.intValue = defaultValue;
     return item->id;
 }
@@ -312,8 +312,13 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 								break;
 							}
 						} else if (it->type == MYLIB_MENU_ITEM_BUTTON ) {
-							if (it->data.callback != NULL)
-								return it->data.callback(it);
+							if (it->data.callback != NULL) {
+								int ret = it->data.callback(it);
+								if (ret == MYLIB_MENU_RET_CB_CONTINUE) {
+									break;
+								}
+								return ret;
+							}
 							return it->id;
 						} else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
 							it->data.boolValue = !it->data.boolValue;
