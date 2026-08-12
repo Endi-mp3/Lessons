@@ -27,6 +27,14 @@ struct MenuTrigerSlot {
 	int TrigerBtnStart;
 } menuTrigSlt = {NULL, -1, -1};
 
+struct MenuTrigerSlotCheckBox {
+	int TrigerChkBox1;
+	int TrigerChkBox2;
+	int TrigerChkBox3;
+	int TrigerChkBox4;
+} menuTrigerChBx = {-1, -1, -1, -1};
+
+
 struct MenuRessetingDevice {
 	MyLibMenu *RessetDevice;
 	int FullReset;
@@ -50,9 +58,31 @@ int cb_button_triger_slot_menu(void* __attribute((unused)) pvPtr)
 	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
     int sock = my_sock_init_client(ip, port);
     if (sock >= 0) {
+//<<<<<<< Updated upstream
 		my_sock_send(sock, 0x04, 0x02, 0, NULL);  		//my_sock_cmd_triger_menu
 		pkt = my_sock_recv(sock, 4096);
 		my_close(sock, "triger slot");
+//=======
+    my_sock_send(sock, 0x04, 0x02, 0, NULL);  		//my_sock_cmd_triger_menu
+	pkt = my_sock_recv(sock, 4096);
+	my_close(sock, "triger slot");
+	
+    menuTrigSlt.TrigerSlot = mylib_menu_create("TriggerSlot");
+    
+    menuTrigerChBx.TrigerChkBox1 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 1", true);
+    menuTrigerChBx.TrigerChkBox2 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 2", true);
+    menuTrigerChBx.TrigerChkBox3 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 3", true);
+    menuTrigerChBx.TrigerChkBox4 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 4", true);
+   
+    
+    menuTrigSlt.TrigerBtnStart = mylib_menu_create_button(menuTrigSlt.TrigerSlot, "Start", NULL);
+    
+    mylib_menu_create_exit_button(menuTrigSlt.TrigerSlot, "[ BACK TO MAIN MENU ]");
+    
+    mylib_menu_show(menuTrigSlt.TrigerSlot, -1);
+    
+    return 0;
+//>>>>>>> Stashed changes
     }
    return 0;
 }
@@ -160,9 +190,9 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	menuBtnSlt.SlotName = mylib_menu_create_string(menuBtnSlt.ButtonSlot, "name slot", "new name");
 	menuBtnSlt.SlotBtnStart = mylib_menu_create_button(menuBtnSlt.ButtonSlot, "Start listen new IR signal", NULL);  
 	
-	menuTrigSlt.TrigerBtn = mylib_menu_create_button(menu, "Triger Slot", NULL);
-	menuTrigSlt.TrigerSlot = mylib_menu_create("TriggerSlot");
-	menuTrigSlt.TrigerBtnStart = mylib_menu_create_button(menuTrigSlt.TrigerSlot, "Start", NULL);
+	menuTrigSlt.TrigerBtn = mylib_menu_create_button(menu, "Triger Slot", cb_button_triger_slot_menu);
+	
+	
 	
 	menuRessetDev.RessetDevice = mylib_menu_create_submenu(menu, "resseting the device");
 	menuRessetDev.FullReset = mylib_menu_create_button(menuRessetDev.RessetDevice, "full reset", cb_device_full_reset);

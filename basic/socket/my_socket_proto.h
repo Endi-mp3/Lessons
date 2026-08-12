@@ -20,6 +20,11 @@ enum MySockCommands
 	my_sock_cmd_set,
 	my_sock_cmd_info,
 	my_sock_cmd_err,
+	my_sock_cmd_watcher_settings,
+	my_sock_cmd_full_reset,
+	my_sock_cmd_slot_clean,
+	my_sock_cmd_triger_menu,
+	
 };
 
 #pragma pack(push, 1)
