@@ -77,7 +77,7 @@ void tcp_client_task(void *pvParameters)
 {
     static const char *TAG = "nonblocking-socket-client";
     static const char *payload = "GET / HTTP/1.1\r\n\r\n";
-    static char rx_buffer[128];
+    static char rx_buffer[256];
 
     struct addrinfo hints = { .ai_socktype = SOCK_STREAM };
     struct addrinfo *address_info;
@@ -295,7 +295,7 @@ void tcp_server_task(void *pvParameters)
             if (sock[i] != INVALID_SOCK) {
 
                 // This is an open socket -> try to serve it
-                int len = try_receive(TAG, sock[i], rx_buffer, sizeof(rx_buffer));
+                uint32_t len = try_receive(TAG, sock[i], rx_buffer, sizeof(rx_buffer));
                 if (len < 0) {
                     // Error occurred within this client's socket -> close and mark invalid
                     ESP_LOGI(TAG, "[sock=%d]: try_receive() returned %d -> closing the socket", sock[i], len);
@@ -303,24 +303,31 @@ void tcp_server_task(void *pvParameters)
                     sock[i] = INVALID_SOCK;
                 } else if (len > 0) {
                     // Received some data -> echo back
-                    ESP_LOGI(TAG, "[sock=%d]: Received %.*s", sock[i], len, rx_buffer);
-					if (params->callback(rx_buffer, &len) < 0) {
+                    ESP_LOGI(TAG, "[sock=%d]: Received[len = %i]. call %x", sock[i], len, params->callback);
+					if (params->callback(rx_buffer, (uint32_t*)&len) < 0) {
                         ESP_LOGI(TAG, "[sock=%d]: socket_send() returned %d -> closing the socket", sock[i], len);
                         close(sock[i]);
                         sock[i] = INVALID_SOCK;
 					}
+
+					ESP_LOGI(TAG, "Here %i", __LINE__);
                     len = socket_send(TAG, sock[i], rx_buffer, len);
+					ESP_LOGI(TAG, "Here %i", __LINE__);
                     if (len < 0) {
                         // Error occurred on write to this socket -> close it and mark invalid
+					ESP_LOGI(TAG, "Here %i", __LINE__);
                         ESP_LOGI(TAG, "[sock=%d]: socket_send() returned %d -> closing the socket", sock[i], len);
                         close(sock[i]);
                         sock[i] = INVALID_SOCK;
                     } else {
+						ESP_LOGI(TAG, "Here %i", __LINE__);
                         // Successfully echoed to this socket
-                        ESP_LOGI(TAG, "[sock=%d]: Written %.*s", sock[i], len, rx_buffer);
+                        ESP_LOGI(TAG, "[sock=%d]: Written[len = %i]", sock[i], len);
                     }
+					ESP_LOGI(TAG, "Here %i", __LINE__);
                 }
 
+					ESP_LOGI(TAG, "Here %i", __LINE__);
             } // one client's socket
         } // for all sockets
 

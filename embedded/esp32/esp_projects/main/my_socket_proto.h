@@ -18,7 +18,8 @@ enum MySockCommands
 {
 	my_sock_cmd_err = -1,
 	my_sock_cmd_slot_assign,
-	my_sock_cmd_slot_trigger,
+	my_sock_cmd_slot_trigger,     ///<< triggering slot
+	my_sock_cmd_get_slots,     ///<< return list of slots
 	my_sock_cmd_slot_clean,
 	my_sock_cmd_slot_clean_all,
 	my_sock_cmd_watcher_settings,
@@ -46,5 +47,4 @@ struct Packet
     uint8_t data[0];
 };
 #pragma pack(pop)
-
 

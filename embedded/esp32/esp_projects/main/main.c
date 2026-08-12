@@ -14,25 +14,35 @@ int callback_on_receive(char* buffer, uint32_t* length)
 	printf("\n");
 	struct Packet *pkt = (struct Packet *)buffer;
 
+	ESP_LOGI("app_main", "Here %i", __LINE__);
 	switch (pkt->header.cmd)
 	{
 	case my_sock_cmd_slot_assign:
-		
+
+	ESP_LOGI("app_main", "Here %i", __LINE__);
 		// pseudo code
 		// form success answer package
 		// form error answer package
 		//
 		break;
-	case 
+	case my_sock_cmd_slot_clean_all:
+	ESP_LOGI("app_main", "Here %i", __LINE__);
+		pkt->data[0] = my_sock_err_ok;
+	ESP_LOGI("app_main", "Here %i", __LINE__);
+		*length = sizeof(struct Packet) + 1;
+	ESP_LOGI("app_main", "Here %i", __LINE__);
+		break;
 	default:
 		break;
 	}
 
+	ESP_LOGI("app_main", "Here %i", __LINE__);
 
 	// обработка сигналов  (switch)
 	return 0;
 }
-
+SemaphoreHandle_t server_ready;
+TcpServerParameters params;
 void app_main(void)
 {
 	esp_err_t lvError;
@@ -60,9 +70,10 @@ void app_main(void)
 	}
 #endif
 
-	SemaphoreHandle_t server_ready = xSemaphoreCreateBinary();
+	server_ready = xSemaphoreCreateBinary();
 	assert(server_ready);
-	TcpServerParameters params = {callback_on_receive, &server_ready };
+	params.callback = callback_on_receive;
+	params.other = &server_ready;
 	xTaskCreate(tcp_server_task, "tcp_server", 4096, &params, 5, NULL);
 	xSemaphoreTake(server_ready, portMAX_DELAY);
 	vSemaphoreDelete(server_ready);

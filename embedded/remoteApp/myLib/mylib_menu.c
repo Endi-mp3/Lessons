@@ -178,7 +178,8 @@ int mylib_menu_get_config(MyLibMenu* rootPtr, int id, void* resultPtr)
 // ---------------- Show menu (blocking) ----------------
 int mylib_menu_show(MyLibMenu* root, int split_id)
 {
-    if (!root) return MYLIB_MENU_RET_ERROR;
+    if (!root)
+		return MYLIB_MENU_RET_ERROR;
 
     MyLibMenu* current = root;
     int choice = 0;
@@ -223,7 +224,7 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 				if (split_id == -1) {
 					switch (it->type) {
 						case MYLIB_MENU_ITEM_CHECKBOX:
-							mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
+							mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue ? 'X':' ', it->title);
 							break;
 						case MYLIB_MENU_ITEM_INT:
 							mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
@@ -500,6 +501,8 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
                 choice = 0;
             } else return MYLIB_MENU_RET_BTN_QUIT;
             break;
+		default:
+			break;
     }
     return MYLIB_MENU_RET_OK;
 }

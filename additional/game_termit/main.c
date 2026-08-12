@@ -47,9 +47,9 @@ GameScreen setup_game_screen(void)
     if (mylib_sv_init() != 0) {
         return gs;
     }
-	gs.cellular_id = 0;
-	gs.stats_id = mylib_sv_create_split(0, MYLIB_SV_DIR_VERTICAL);
-	gs.console_id = mylib_sv_create_split(gs.stats_id, MYLIB_SV_DIR_HORIZONTAL);
+	gs.cellular_id = 0;		// full screen
+	gs.stats_id = mylib_sv_create_split(gs.cellular_id, MYLIB_SV_DIR_VERTICAL);  // half screen split vertical
+	gs.console_id = mylib_sv_create_split(gs.stats_id, MYLIB_SV_DIR_HORIZONTAL); // half screen split horizontal
     return gs;
 }
 
@@ -61,7 +61,6 @@ int on_hello(void* __attribute((unused))__pv)
 
 int main(void)
 {
-	/// VVVVVVVVV
     initscr(); // эти функции нужны для нормальной рисовки
     cbreak(); // настройки терминала (брейк лайн)
     noecho(); // отключаем эхо
@@ -82,7 +81,6 @@ int main(void)
 		return 0;
 	}
 
-	///^^^^^^^^^ пока ты берешь то что ^^^^^^^
     GameScreen gs = setup_game_screen();
 
     // инициализация модулей
