@@ -174,7 +174,7 @@ int mylib_menu_get_config(MyLibMenu* rootPtr, int id, void* resultPtr)
     }
     return MYLIB_MENU_RET_ERROR;
 }
-int mylib_menu_prepare_step()
+int mylib_menu_prepare_step(WINDOW *w)
 	{
 		
 	    keypad(w, TRUE);
@@ -197,20 +197,22 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 	
 	MyLibMenu *ppCurrent = root;
 	
-	mylib_menu_prepare_step;
+	mylib_menu_prepare_step(w);
 	
-	while(1) 
-	{
-		int st = mylib_menu_step(&ppCurrent, split_id);
+	while(1)
+	{ 
+	
+	int st = mylib_menu_step(&ppCurrent, split_id);
 		
-	}	
+		
 	if (st == MYLIB_MENU_RET_OK)
-	{
-		continue;
+		{
+			continue;
+		}
+	
+	
+	
 	}
-	
-	
-	
 }
 
 	
