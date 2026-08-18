@@ -7,8 +7,9 @@ TMPDIR   := $(BUILDDIR)
 LOGERR   := $(TMPDIR)/log.error
 
 # ==== Compiler and flags ====
+CFG := -DMYLIB_SPLITVIEW_USED
 CC      := gcc
-CFLAGS  := -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
+CFLAGS  := $(CFG) -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
 LDFLAGS := $(shell pkg-config --libs ncurses)
 # -I/opt/homebrew/opt/ncurses/include
 INCLUDE := -ImyLib -I../esp32/esp_projects/main

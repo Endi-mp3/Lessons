@@ -1,55 +1,150 @@
 #include "my_socket_lib.h"
 #include "my_socket_proto.h"
 #include "mylib_menu.h"
+#include "mylib_splitview.h"
+#include "app_types.h"
+#include "mylib_console.h"
 
 static MyLibMenu *menu;
 static int port = 44004;
 
-struct MenuNetwork {
-	int Port;
-	int IP;
-	MyLibMenu *Network;
-    MyLibMenu *WIFI;
-    MyLibMenu *WIFIconnect;
-    int WifiName;
-    int WifiSid;
-} menuNetCtx = { -1, -1, NULL, NULL, NULL, -1, -1 };
+struct AppScreens
+{
+	int appscr_menu;
+	int appscr_cli;
+};
 
-struct MenuButtonSlot {
-	MyLibMenu *ButtonSlot;
-	int SlotName;
-	int SlotBtnStart;
-} menuBtnSlt = {NULL, -1, -1};
+static struct AppScreens appScreens = { -1, -1 };
+static struct MenuTrigerSlotCheckBox menuTrigerChBx = {-1, {-1} };
+static struct MenuTrigerSlot menuTrigSlt = {NULL, -1, -1};
+static struct MenuNetwork menuNetCtx = { -1, -1, NULL, NULL, NULL, -1, -1 };
+static struct MenuButtonSlot menuBtnSlt = {NULL, -1, -1};
+static struct MenuResetingDevice menuResetDev = {NULL, -1, -1};
+static struct MenuSettingsPayload menuSettingsPayload = {NULL, -1, -1, -1};
+static int menuButtonSlotAdd;
+static int menuButtonSlotStart;
 
-struct MenuTrigerSlot {
-	MyLibMenu *TrigerSlot;
-	int TrigerBtn;
-	int TrigerBtnStart;
-} menuTrigSlt = {NULL, -1, -1};
+///---------------- Definitions ----------------
+int cb_device_clean_slot(void* __attribute((unused)) pvPtr);
+int cb_device_full_reset(void* __attribute((unused)) pvPtr);
+int cb_monitoring(void* __attribute((unused)) pvPtr);
+int cb_button_triger_slot_menu(void* __attribute((unused)) pvPtr);
+int default_callback(void* __attribute((unused)) pvPtr);
+int handle_clnt(const char* server_ip, int cmd, const char* payload);
+void s_init_menu(void);
+void s_init_splitView(void);
 
-struct MenuTrigerSlotCheckBox {
-	int TrigerChkBox1;
-	int TrigerChkBox2;
-	int TrigerChkBox3;
-	int TrigerChkBox4;
-} menuTrigerChBx = {-1, -1, -1, -1};
+///---------------- Implementation ----------------
+
+int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
+{
+	// init menu
+	// start
+	// selection client / server
+	// check params client / server
+	// run client / server
 
 
-struct MenuRessetingDevice {
-	MyLibMenu *RessetDevice;
-	int FullReset;
-	int CleanSlot;
-} menuRessetDev = {NULL, -1, -1};
+    initscr(); // эти функции нужны для нормальной рисовки
+    cbreak(); // настройки терминала (брейк лайн)
+    noecho(); // отключаем эхо
+    keypad(stdscr, TRUE); // не помню))
+    curs_set(0); // устанавливаем курсор в угол экрана
+    start_color(); // инициализируются цвета терминала
 
-struct MenuSettingsPayload {
-	MyLibMenu *SettingsPayload;
-	int SettingCmd;
-	int SettingData;
-	int SettingSend;
-} menuSettingsPayload = {NULL, -1, -1, -1};
+	s_init_splitView();
+	mylib_cli_init(appScreens.appscr_cli);
+	s_init_menu();
 
-int menuButtonSlotAdd, menuButtonSlotStart;
+    MyLibMenu *current_menu = menu;
+	MyLibMenuReturnCode_t showResult = MYLIB_MENU_RET_OK;
+	WINDOW* menuWindow =  mylib_menu_prepare_step(appScreens.appscr_menu, FALSE);
+	MYLIB_CLI_PRINT("Test test test\n");
+	while(showResult == MYLIB_MENU_RET_OK) {
+		showResult = mylib_menu_step(menuWindow, &current_menu, appScreens.appscr_menu);
+		mylib_cli_output_step(appScreens.appscr_cli);
+		switch(showResult) {
+			case MYLIB_MENU_RET_BTN_QUIT:
+				endwin();
+				wgetch(menuWindow);
+				return 0;
+			case MYLIB_MENU_RET_ERROR:
+				MYLIB_CLI_PRINT("%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
+				mylib_cli_output_step(appScreens.appscr_cli);
+				wgetch(menuWindow);
+				endwin();
+				return 0;
+			default:
+				break;
+		}
 
+		usleep(16000);
+		doupdate();
+	}
+	endwin();
+	MYLIB_CLI_PRINT("Menu finished\n");
+	char* ip;
+
+	MYLIB_CLI_PRINT("showResult = %i\n", showResult);
+	if (showResult == menuTrigSlt.TrigerBtn) {
+		char* ip ;
+		char* slot_name = NULL;
+
+		mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
+		mylib_menu_get_config(menu, menuNetCtx.Port, &port);
+		mylib_menu_get_config(menu, menuButtonSlotAdd, &slot_name);
+
+		/*
+		int sock = my_sock_init_client(ip, port);
+		if (sock >= 0) {
+			my_sock_send(sock, 0x02, my_sock_cmd_update_slot, strlen(slot_name) + 1, (void*)slot_name);
+		}
+
+		struct Packet* pkt = my_sock_recv(sock, 4096);
+		if (pkt == NULL){
+			my_close(sock, "slot error");
+		}
+		*/
+
+
+		showResult = mylib_menu_show(menuTrigSlt.TrigerSlot, appScreens.appscr_menu);
+		endwin();
+		MYLIB_CLI_PRINT("Menu finished\n");
+		/*
+		if (showResult == start) {
+			// send slot triggers
+			// show result (optional)
+			// return back to same menu menuTriggerSlot
+		}
+		else (showResult == back) {
+			// close menuTriggerSlot
+			// clean slots info
+			// return back to previous menu
+		}
+		*/
+		return 0;
+	}
+
+	mylib_menu_get_config(menu, menuNetCtx.Port, &port);
+	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
+	if (showResult == menuSettingsPayload.SettingSend) {
+		uint8_t *payload;
+		int cmd;
+		//char *payloadFilePath;
+		mylib_menu_get_config(menu, menuSettingsPayload.SettingCmd, &cmd);
+		mylib_menu_get_config(menu, menuSettingsPayload.SettingData, &payload);
+		handle_clnt(ip, cmd, (const char*)payload);
+		free(payload);
+
+	} else {
+		// pizdec
+		return -1;
+	}
+	free(ip);
+	return 0;
+}
+
+///---------------- Internal functions and callbacks ----------------
 int cb_button_triger_slot_menu(void* __attribute((unused)) pvPtr)
 {
 	struct Packet *pkt = NULL;
@@ -109,6 +204,8 @@ int cb_device_clean_slot(void* __attribute((unused)) pvPtr)
     return 0;
 }
 
+
+
 int default_callback(void* __attribute((unused)) pvPtr)
 {
 	return 0;
@@ -119,22 +216,22 @@ int handle_clnt(const char* server_ip, int cmd, const char* payload)
 	enum MySockRet res = my_sock_err_ok;
 	int sock = my_sock_init_client(server_ip, port);
 	// send routine
-	fprintf(stderr,"Send to server...");
+	MYLIB_CLI_PRINT("Send to server...");
 	my_sock_send(sock, 0xDEAD, cmd, strlen(payload), (void*)payload);
-	fprintf(stderr,".done\n");
+	MYLIB_CLI_PRINT(".done\n");
 	// recv routine
-	fprintf(stderr,"Recv from server...");
+	MYLIB_CLI_PRINT("Recv from server...");
 	struct Packet *pkt = my_sock_recv(sock, 4096);
 	if (pkt == NULL) {
 		my_close(sock, "sock");
-		fprintf(stderr,".failed\n");
+		MYLIB_CLI_PRINT(".failed\n");
 		return my_sock_err_recv;
 	}
 
-	fprintf(stderr,".done\n");
+	MYLIB_CLI_PRINT(".done\n");
 	switch (pkt->header.cmd) {
 		case my_sock_cmd_err:
-			fprintf(stderr, "Got failed response: %02x\n", pkt->data[0]);
+			MYLIB_CLI_PRINT( "Got failed response: %02x\n", pkt->data[0]);
 			res = my_sock_err_error;
 			break;
 			break;
@@ -147,23 +244,9 @@ int handle_clnt(const char* server_ip, int cmd, const char* payload)
 	return res;
 }
 
-int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
+void s_init_menu(void)
 {
-	// init menu
-	// start
-	// selection client / server
-	// check params client / server
-	// run client / server
-
-
-    initscr(); // эти функции нужны для нормальной рисовки
-    cbreak(); // настройки терминала (брейк лайн)
-    noecho(); // отключаем эхо
-    keypad(stdscr, TRUE); // не помню))
-    curs_set(0); // устанавливаем курсор в угол экрана
-    start_color(); // инициализируются цвета терминала
-
-    menu = mylib_menu_create("Menu Setting");
+	menu = mylib_menu_create("Menu Setting");
 
     menuNetCtx.Network = mylib_menu_create_submenu(menu, "Setting WIFI/BLE");
     menuNetCtx.WIFI = mylib_menu_create_submenu(menuNetCtx.Network, "Setting WIFI");
@@ -177,11 +260,9 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 
 	menuTrigSlt.TrigerBtn = mylib_menu_create_button(menu, "Triger Slot", cb_button_triger_slot_menu);
 
-
-
-	menuRessetDev.RessetDevice = mylib_menu_create_submenu(menu, "resseting the device");
-	menuRessetDev.FullReset = mylib_menu_create_button(menuRessetDev.RessetDevice, "full reset", cb_device_full_reset);
-	menuRessetDev.CleanSlot = mylib_menu_create_button(menuRessetDev.RessetDevice, "cleane slot", cb_device_clean_slot);
+	menuResetDev.ResetDevice = mylib_menu_create_submenu(menu, "resseting the device");
+	menuResetDev.FullReset = mylib_menu_create_button(menuResetDev.ResetDevice, "full reset", cb_device_full_reset);
+	menuResetDev.CleanSlot = mylib_menu_create_button(menuResetDev.ResetDevice, "cleane slot", cb_device_clean_slot);
 
 
     int menuMonitoring= mylib_menu_create_button(menu, "Monitoring", cb_monitoring);
@@ -203,88 +284,19 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	mylib_menu_set_menu_priority(menuNetCtx.Network, 0);
 	mylib_menu_set_menu_priority(menuBtnSlt.ButtonSlot, 1);
 //	mylib_menu_set_menu_priority(menuTrigSlt.TrigerBtn, 2);
-	mylib_menu_set_menu_priority(menuRessetDev.RessetDevice, 3);
+	mylib_menu_set_menu_priority(menuResetDev.ResetDevice, 3);
 	mylib_menu_set_menu_priority(menuConnectionSettings, 5);
 	mylib_menu_set_menu_priority(menuSettingsPayload.SettingsPayload, 6);
 
-    // MyLibMenu *current_menu = menu;
 
-	MyLibMenuReturnCode_t showResult = mylib_menu_show(menu, -1);
-	switch(showResult) {
-		case MYLIB_MENU_RET_BTN_QUIT:
-			endwin();
-			return 0;
-		case MYLIB_MENU_RET_ERROR:
-			fprintf(stderr,"%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
-			endwin();
-			return 0;
-		default:
-			break;
-	}
-
-	endwin();
-	fprintf(stderr,"Menu finished\n");
-	char* ip;
-
-	fprintf(stderr,"showResult = %i\n", showResult);
-	if (showResult == menuTrigSlt.TrigerBtn) {
-		char* ip ;
-		char* slot_name = NULL;
-
-		mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
-		mylib_menu_get_config(menu, menuNetCtx.Port, &port);
-		mylib_menu_get_config(menu, menuButtonSlotAdd, &slot_name);
-
-		/*
-		int sock = my_sock_init_client(ip, port);
-		if (sock >= 0) {
-			my_sock_send(sock, 0x02, my_sock_cmd_update_slot, strlen(slot_name) + 1, (void*)slot_name);
-		}
-
-		struct Packet* pkt = my_sock_recv(sock, 4096);
-		if (pkt == NULL){
-			my_close(sock, "slot error");
-		}
-		*/
-
-
-		showResult = mylib_menu_show(menuTrigSlt.TrigerSlot, -1);
-		endwin();
-		fprintf(stderr,"Menu finished\n");
-		/*
-		if (showResult == start) {
-			// send slot triggers
-			// show result (optional)
-			// return back to same menu menuTriggerSlot
-		}
-		else (showResult == back) {
-			// close menuTriggerSlot
-			// clean slots info
-			// return back to previous menu
-		}
-		*/
-		return 0;
-	}
-
-	mylib_menu_get_config(menu, menuNetCtx.Port, &port);
-	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
-	if (showResult == menuSettingsPayload.SettingSend) {
-		uint8_t *payload;
-		int cmd;
-		//char *payloadFilePath;
-		mylib_menu_get_config(menu, menuSettingsPayload.SettingCmd, &cmd);
-		mylib_menu_get_config(menu, menuSettingsPayload.SettingData, &payload);
-		handle_clnt(ip, cmd, (const char*)payload);
-		free(payload);
-
-	} else {
-		// pizdec
-		return -1;
-	}
-	free(ip);
-	return 0;
 }
 
-
-
-
+void s_init_splitView(void)
+{
+	if (mylib_sv_init() != 0) {
+		perror("mylib_sv_init failed");
+		return;
+	}
+	appScreens.appscr_menu = 0;
+	appScreens.appscr_cli = mylib_sv_create_split(appScreens.appscr_menu, MYLIB_SV_DIR_HORIZONTAL);
+}

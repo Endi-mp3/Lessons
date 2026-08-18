@@ -1,6 +1,4 @@
-#include <stdlib.h>
-#include <string.h>
-#include <ncurses.h>
+#include "mylib_splitview.h"
 #include "mylib_menu.h"
 #include "mylib_io.h"
 
@@ -175,27 +173,27 @@ int mylib_menu_get_config(MyLibMenu* rootPtr, int id, void* resultPtr)
     return MYLIB_MENU_RET_ERROR;
 }
 
-void mylib_menu_prepare_step(WINDOW *w, bool isBlocking)
+WINDOW* mylib_menu_prepare_step(int split_id, bool isBlocking)
 {
-	keypad(w, TRUE);
-	nodelay(w, !isBlocking); // неблокирующий ввод
-}
-// ---------------- Show menu (blocking) ----------------
-int mylib_menu_show(MyLibMenu* root, int split_id)
-{
-
-	#ifdef MYLIB_SPLITVIEW_USED
+#ifdef MYLIB_SPLITVIEW_USED
     WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
 #else
     WINDOW *w = (split_id == -1) ? stdscr : NULL;
 #endif
+	keypad(w, TRUE);
+	nodelay(w, !isBlocking); // неблокирующий ввод
+	return w;
+}
+// ---------------- Show menu (blocking) ----------------
+int mylib_menu_show(MyLibMenu* root, int split_id)
+{
+	WINDOW *w = mylib_menu_prepare_step(split_id, TRUE);
     if (!root || !w)
 		return MYLIB_MENU_RET_ERROR;
 
 	MyLibMenu *ppCurrent = root;
-	mylib_menu_prepare_step(w, TRUE);
 	while(1) {
-		int st = mylib_menu_step(&ppCurrent, split_id);
+		int st = mylib_menu_step(w, &ppCurrent, split_id);
 		if (st == MYLIB_MENU_RET_OK) {
 			continue;
 		} else {
@@ -204,18 +202,14 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 	}
 }
 
-int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
+int mylib_menu_step(WINDOW* w, MyLibMenu **ppCurrent, int split_id)
 {
     if (!ppCurrent || !*ppCurrent)
 		return MYLIB_MENU_RET_ERROR;
     MyLibMenu *current = *ppCurrent;
     static int choice = 0;
-#ifdef MYLIB_SPLITVIEW_USED
-    WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
-#else
-    WINDOW *w = (split_id == -1) ? stdscr : NULL;
-#endif
-    if (!w) return MYLIB_MENU_RET_ERROR;
+	if (!w)
+		return MYLIB_MENU_RET_ERROR;
 
     // --- Отрисовка ---
     if (split_id == -1) {

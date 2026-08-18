@@ -19,7 +19,7 @@ int my_close_fn(int sock, const char* __attribute((unused)) what, const char* __
 
 #define my_malloc(size, what) my_malloc_fn(size, what, __FUNCTION__, __LINE__)
 #define my_free(ptr, size, what) my_free_fn(ptr, size, what, __FUNCTION__, __LINE__)
-#define GOT_SOCKET(sock, what) printf("%s %i: got socket: %s fd %i\n", __FUNCTION__, __LINE__, what, sock)
+#define GOT_SOCKET(sock, what) MYLIB_CLI_PRINT("%s %i: got socket: %s fd %i\n", __FUNCTION__, __LINE__, what, sock)
 #define my_close(sock, what) my_close_fn(sock, what, __FUNCTION__, __LINE__)
 
 

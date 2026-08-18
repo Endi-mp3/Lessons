@@ -1,6 +1,8 @@
 #ifndef MYLIB_MENU_H
 #define MYLIB_MENU_H
-
+#include <stdlib.h>
+#include <string.h>
+#include <ncurses.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -123,9 +125,9 @@ int mylib_menu_get_item_priority(MyLibMenu* rootPtr, int id, int *prioPtr);
 
 // Show menu in split (blocking), -1 чтобы стартовать без сплита
 int mylib_menu_show(MyLibMenu* root, int split_id);
-int mylib_menu_step(MyLibMenu **ppCurrent, int split_id);
+int mylib_menu_step(WINDOW* w, MyLibMenu **ppCurrent, int split_id);
 
-void mylib_menu_prepare_step(WINDOW *w, bool isBlocking);
+WINDOW* mylib_menu_prepare_step(int split_id, bool isBlocking);
 
 #ifdef __cplusplus
 }

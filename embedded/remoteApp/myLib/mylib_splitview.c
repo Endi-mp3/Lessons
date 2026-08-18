@@ -132,11 +132,10 @@ int mylib_sv_create_split(int parent_id, mylib_sv_split_dir_t dir)
     // Cannot split if already has children
     if (p->child_a != -1 || p->child_b != -1) return -1;
 
-    int a_id = alloc_node();
+    int a_id = parent_id;
     int b_id = alloc_node();
     if (a_id < 0 || b_id < 0) return -1;
 
-    nodes[a_id].parent = parent_id;
     nodes[b_id].parent = parent_id;
 
     int x = p->x, y = p->y, w = p->w, h = p->h;
@@ -186,6 +185,7 @@ int mylib_sv_create_split(int parent_id, mylib_sv_split_dir_t dir)
 
     refresh();
 
+	delwin(nodes[a_id].win);
     nodes[a_id].win = create_window_rect(nodes[a_id].y, nodes[a_id].x, nodes[a_id].h, nodes[a_id].w);
     nodes[b_id].win = create_window_rect(nodes[b_id].y, nodes[b_id].x, nodes[b_id].h, nodes[b_id].w);
 

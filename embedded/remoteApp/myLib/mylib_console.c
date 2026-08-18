@@ -131,3 +131,28 @@ int mylib_cli_step(int split_id, mylib_cli_on_command_fn cb)
     wnoutrefresh(w);
     return 0;
 }
+
+int mylib_cli_output_step(int split_id)
+{
+    WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
+    if (!w) return -1;
+    keypad(w, TRUE);
+    nodelay(w, TRUE);
+
+    // --- Отрисовка ---
+    werase(w);
+    box(w, 0, 0);
+
+    int max_y, max_x;
+    getmaxyx(w, max_y, max_x);
+
+    // выводим последние строки истории
+    int start = (cli_line_count > max_y-2) ? cli_line_count - (max_y-2) : 0;
+    int row = 1;
+    for (int i = start; i < cli_line_count; i++, row++) {
+        mvwprintw(w, row, 1, "%s", cli_lines[i]);
+    }
+    wnoutrefresh(w);
+    return 0;
+
+}
