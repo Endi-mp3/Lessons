@@ -58,33 +58,18 @@ int cb_button_triger_slot_menu(void* __attribute((unused)) pvPtr)
 	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
     int sock = my_sock_init_client(ip, port);
     if (sock >= 0) {
-//<<<<<<< Updated upstream
 		my_sock_send(sock, 0x04, 0x02, 0, NULL);  		//my_sock_cmd_triger_menu
 		pkt = my_sock_recv(sock, 4096);
 		my_close(sock, "triger slot");
-//=======
-    my_sock_send(sock, 0x04, 0x02, 0, NULL);  		//my_sock_cmd_triger_menu
-	pkt = my_sock_recv(sock, 4096);
-	my_close(sock, "triger slot");
-	
-    menuTrigSlt.TrigerSlot = mylib_menu_create("TriggerSlot");
-    
-    menuTrigerChBx.TrigerChkBox1 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 1", true);
-    menuTrigerChBx.TrigerChkBox2 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 2", true);
-    menuTrigerChBx.TrigerChkBox3 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 3", true);
-    menuTrigerChBx.TrigerChkBox4 = mylib_menu_create_checkbox(menuTrigSlt.TrigerSlot, "checkbox 4", true);
-   
-    
-    menuTrigSlt.TrigerBtnStart = mylib_menu_create_button(menuTrigSlt.TrigerSlot, "Start", NULL);
-    
-    mylib_menu_create_exit_button(menuTrigSlt.TrigerSlot, "[ BACK TO MAIN MENU ]");
-    
-    mylib_menu_show(menuTrigSlt.TrigerSlot, -1);
-    
-    return 0;
-//>>>>>>> Stashed changes
-    }
-   return 0;
+	}
+
+	if (!pkt)
+		return -1;
+
+	// TODO add check that in pkt we have data
+	// TODO remove old checkboxes
+	// TODO add dynamic checkboxes creation
+	return 0;
 }
 
 
@@ -106,7 +91,7 @@ int cb_device_full_reset(void* __attribute((unused)) pvPtr)
 	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
     int sock = my_sock_init_client(ip, port);
     if (sock >= 0) {
-        my_sock_send(sock, 0x04, my_sock_cmd_full_reset, 0, NULL); 
+        my_sock_send(sock, 0x04, my_sock_cmd_full_reset, 0, NULL);
         my_close(sock, "reset sock");
     }
     return 0;
@@ -149,7 +134,7 @@ int handle_clnt(const char* server_ip, int cmd, const char* payload)
 	fprintf(stderr,".done\n");
 	switch (pkt->header.cmd) {
 		case my_sock_cmd_err:
-			fprintf(stderr,stderr, "Got failed response: %02x\n", pkt->data[0]);
+			fprintf(stderr, "Got failed response: %02x\n", pkt->data[0]);
 			res = my_sock_err_error;
 			break;
 			break;
@@ -188,16 +173,16 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 
 	menuBtnSlt.ButtonSlot = mylib_menu_create_submenu(menu, "Slot Setting");
 	menuBtnSlt.SlotName = mylib_menu_create_string(menuBtnSlt.ButtonSlot, "name slot", "new name");
-	menuBtnSlt.SlotBtnStart = mylib_menu_create_button(menuBtnSlt.ButtonSlot, "Start listen new IR signal", NULL);  
-	
+	menuBtnSlt.SlotBtnStart = mylib_menu_create_button(menuBtnSlt.ButtonSlot, "Start listen new IR signal", NULL);
+
 	menuTrigSlt.TrigerBtn = mylib_menu_create_button(menu, "Triger Slot", cb_button_triger_slot_menu);
-	
-	
-	
+
+
+
 	menuRessetDev.RessetDevice = mylib_menu_create_submenu(menu, "resseting the device");
 	menuRessetDev.FullReset = mylib_menu_create_button(menuRessetDev.RessetDevice, "full reset", cb_device_full_reset);
 	menuRessetDev.CleanSlot = mylib_menu_create_button(menuRessetDev.RessetDevice, "cleane slot", cb_device_clean_slot);
-	
+
 
     int menuMonitoring= mylib_menu_create_button(menu, "Monitoring", cb_monitoring);
 
@@ -210,7 +195,7 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	menuSettingsPayload.SettingData = mylib_menu_create_string(menuSettingsPayload.SettingsPayload, "Data:", "0102030405060");
 	menuSettingsPayload.SettingSend = mylib_menu_create_button(menuSettingsPayload.SettingsPayload, "[ SEND PACKET ]", NULL);
 
-	
+
 	int menuButtonQuit = mylib_menu_create_exit_button(menu, "Quit");
 
 	mylib_menu_set_item_priority(menu, menuButtonQuit, 7);
@@ -233,6 +218,8 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 			fprintf(stderr,"%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
 			endwin();
 			return 0;
+		default:
+			break;
 	}
 
 	endwin();
@@ -284,10 +271,10 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	if (showResult == menuSettingsPayload.SettingSend) {
 		uint8_t *payload;
 		int cmd;
-		char *payloadFilePath;
+		//char *payloadFilePath;
 		mylib_menu_get_config(menu, menuSettingsPayload.SettingCmd, &cmd);
 		mylib_menu_get_config(menu, menuSettingsPayload.SettingData, &payload);
-		handle_clnt(ip, cmd, payload);
+		handle_clnt(ip, cmd, (const char*)payload);
 		free(payload);
 
 	} else {

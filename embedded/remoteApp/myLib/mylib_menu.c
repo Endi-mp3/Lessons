@@ -174,53 +174,38 @@ int mylib_menu_get_config(MyLibMenu* rootPtr, int id, void* resultPtr)
     }
     return MYLIB_MENU_RET_ERROR;
 }
-int mylib_menu_prepare_step(WINDOW *w)
-	{
-		
-	    keypad(w, TRUE);
-		nodelay(w, TRUE); // неблокирующий ввод
-	}
+
+void mylib_menu_prepare_step(WINDOW *w, bool isBlocking)
+{
+	keypad(w, TRUE);
+	nodelay(w, !isBlocking); // неблокирующий ввод
+}
 // ---------------- Show menu (blocking) ----------------
 int mylib_menu_show(MyLibMenu* root, int split_id)
 {
-	
+
 	#ifdef MYLIB_SPLITVIEW_USED
     WINDOW *w = (split_id == -1) ? stdscr : mylib_sv_get_win(split_id);
 #else
     WINDOW *w = (split_id == -1) ? stdscr : NULL;
 #endif
-    if (!root) 
-    {
+    if (!root || !w)
 		return MYLIB_MENU_RET_ERROR;
-	}
-	if (!w) return MYLIB_MENU_RET_ERROR;
-	
+
 	MyLibMenu *ppCurrent = root;
-	
-	mylib_menu_prepare_step(w);
-	
-	while(1)
-	{ 
-	
-	int st = mylib_menu_step(&ppCurrent, split_id);
-		
-		
-	if (st == MYLIB_MENU_RET_OK)
-		{
+	mylib_menu_prepare_step(w, TRUE);
+	while(1) {
+		int st = mylib_menu_step(&ppCurrent, split_id);
+		if (st == MYLIB_MENU_RET_OK) {
 			continue;
 		}
-	
-	
-	
 	}
 }
 
-	
-	
-
 int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
 {
-    if (!ppCurrent || !*ppCurrent) return MYLIB_MENU_RET_ERROR;
+    if (!ppCurrent || !*ppCurrent)
+		return MYLIB_MENU_RET_ERROR;
     MyLibMenu *current = *ppCurrent;
     static int choice = 0;
 #ifdef MYLIB_SPLITVIEW_USED
@@ -238,16 +223,21 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
 		werase(w);
 		box(w, 0, 0);
 		mvwprintw(w, 0, 2, " %s ", current->title);
-        // mylib_io_clear(split_id);
+        mylib_io_clear(split_id);
         mylib_io_print_at(split_id, 0, 1, "Menu: %s", current->title);
     }
 
     int idx = 0;
+	int currentLastPosition = 0;
 	for(int prio = 0; prio <= global_max_prio; prio++) {
-		for (MyLibMenuItem* it = current->items; it; it = it->next, idx++) {
-			if (it->prio < 0 || it->prio != prio) continue;
+		for (MyLibMenuItem* it = current->items; it; it = it->next) {
+			if (it->prio < 0 || it->prio != prio) {
+				continue;
+			}
 
 			if (idx == choice) wattron(w, A_REVERSE);
+
+			it->position = currentLastPosition++;
 
 			if (split_id == -1) {
 				switch (it->type) {
@@ -286,6 +276,7 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
 			}
 
 			if (idx == choice) wattroff(w, A_REVERSE);
+			idx++;
 		}
 	}
     wrefresh(w);
@@ -304,6 +295,23 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
         case KEY_DOWN: case 'j':
             choice = (choice + 1) % itemCount;
             break;
+		case KEY_LEFT:
+			for (it = current->items; it; it = it->next) {
+				if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
+					it->data.intValue -= 1;
+					break;
+				}
+			}
+			break;
+		case KEY_RIGHT:
+			for (it = current->items; it; it = it->next) {
+				if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
+					it->data.intValue += 1;
+					break;
+				}
+			}
+			break;
+
         case 10: case ' ': // Enter/Space
         {
             int i=0;

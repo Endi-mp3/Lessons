@@ -125,6 +125,7 @@ int mylib_menu_get_item_priority(MyLibMenu* rootPtr, int id, int *prioPtr);
 int mylib_menu_show(MyLibMenu* root, int split_id);
 int mylib_menu_step(MyLibMenu **ppCurrent, int split_id);
 
+void mylib_menu_prepare_step(WINDOW *w, bool isBlocking);
 
 #ifdef __cplusplus
 }
