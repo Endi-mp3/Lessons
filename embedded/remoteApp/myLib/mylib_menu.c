@@ -198,6 +198,8 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 		int st = mylib_menu_step(&ppCurrent, split_id);
 		if (st == MYLIB_MENU_RET_OK) {
 			continue;
+		} else {
+			return st;
 		}
 	}
 }
@@ -296,7 +298,7 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
             choice = (choice + 1) % itemCount;
             break;
 		case KEY_LEFT:
-			for (it = current->items; it; it = it->next) {
+			for (MyLibMenuItem* it = current->items; it; it = it->next) {
 				if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
 					it->data.intValue -= 1;
 					break;
@@ -304,7 +306,7 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
 			}
 			break;
 		case KEY_RIGHT:
-			for (it = current->items; it; it = it->next) {
+			for (MyLibMenuItem* it = current->items; it; it = it->next) {
 				if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
 					it->data.intValue += 1;
 					break;
@@ -314,44 +316,75 @@ int mylib_menu_step(MyLibMenu **ppCurrent, int split_id)
 
         case 10: case ' ': // Enter/Space
         {
-            int i=0;
-            for (MyLibMenuItem* it=current->items; it; it=it->next,i++) {
-                if (i==choice) {
-                    if (it->id == MYLIB_MENU_RET_BTN_QUIT)
+			for (MyLibMenuItem* it = current->items; it; it = it->next) {
+				if (it->position == choice) {
+					if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
+						current = it->data.submenu;
+						choice = 0;
+						break;
+					} else if (it->id == MYLIB_MENU_RET_BTN_QUIT) {
 						return MYLIB_MENU_RET_BTN_QUIT;
-                    if (it->id == MYLIB_MENU_RET_BTN_START)
+					} else if (it->id == MYLIB_MENU_RET_BTN_START) {
 						return MYLIB_MENU_RET_BTN_START;
-                    if (it->id == MYLIB_MENU_RET_BTN_START)
-						return MYLIB_MENU_RET_BTN_START;
-                    if (it->id == MYLIB_MENU_RET_BTN_BACK && current->parent) {
-                        *ppCurrent = current->parent;
-                        choice = 0;
-                        return MYLIB_MENU_RET_OK;
-                    }
-					if (it->type == MYLIB_MENU_ITEM_BUTTON) {
-						if (it->data.callback != NULL) {
-							return it->data.callback(it);
+					} else if (it->id == MYLIB_MENU_RET_BTN_BACK) {
+						if (current->parent) {
+							current = current->parent;
+							choice = 0;
+							break;
 						}
+					} else if (it->type == MYLIB_MENU_ITEM_BUTTON ) {
+						if (it->data.callback != NULL)
+							return it->data.callback(it);
 						return it->id;
+					} else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
+						it->data.boolValue = !it->data.boolValue;
+						break;
+					} else if (it->type == MYLIB_MENU_ITEM_INT) {
+						echo();
+						curs_set(1);
+						char buf[32];
+						if (split_id == -1) {
+							mvprintw(LINES-2, 0, "Input new number: ");
+							getnstr(buf, sizeof(buf)-1);
+						} else {
+							mylib_io_print_at(split_id, idx+4, 2, "Input new number: ");
+							wgetnstr(w, buf, sizeof(buf)-1);
+						}
+						it->data.intValue = atoi(buf);
+						noecho();
+						curs_set(0);
+						break;
+					} else if (it->type == MYLIB_MENU_ITEM_STRING) {
+						echo();
+						curs_set(1);
+						char buf[256];
+						if (split_id == -1) {
+							mvprintw(LINES-2, 0, "Input new string: ");
+							getnstr(buf, sizeof(buf)-1);
+						} else {
+							mylib_io_print_at(split_id, idx+4, 2, "Input new string: ");
+							wgetnstr(w, buf, sizeof(buf)-1);
+						}
+						free(it->data.strValue);
+						it->data.strValue = strdup(buf);
+						noecho();
+						curs_set(0);
+						break;
 					}
-                    if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
-                        *ppCurrent = it->data.submenu;
-                        choice = 0;
-                        return MYLIB_MENU_RET_OK;
-                    }
-                    if (it->type == MYLIB_MENU_ITEM_CHECKBOX)
-                        it->data.boolValue = !it->data.boolValue;
-                }
-            }
+				}
+			}
         }
         break;
         case 27: // ESC
             if (current->parent) {
-                *ppCurrent = current->parent;
+                current = current->parent;
                 choice = 0;
             } else return MYLIB_MENU_RET_BTN_QUIT;
             break;
     }
+	if (current) {
+		*ppCurrent = current;
+	}
     return MYLIB_MENU_RET_OK;
 }
 

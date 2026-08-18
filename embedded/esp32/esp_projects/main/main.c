@@ -23,7 +23,6 @@ int callback_on_receive(char* buffer, uint32_t* length)
 		// form error answer package
 		//
 		break;
-	case 
 	default:
 		break;
 	}
