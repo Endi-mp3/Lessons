@@ -67,12 +67,14 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 			case MYLIB_MENU_RET_BTN_QUIT:
 				endwin();
 				wgetch(menuWindow);
+				mylib_sv_shutdown();
 				return 0;
 			case MYLIB_MENU_RET_ERROR:
 				MYLIB_CLI_PRINT("%s %i: TODO ERROR\n", __FUNCTION__, __LINE__);
 				mylib_cli_output_step(appScreens.appscr_cli);
 				wgetch(menuWindow);
 				endwin();
+				mylib_sv_shutdown();
 				return 0;
 			default:
 				break;
@@ -122,6 +124,7 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 			// return back to previous menu
 		}
 		*/
+		mylib_sv_shutdown();
 		return 0;
 	}
 
@@ -138,8 +141,10 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 
 	} else {
 		// pizdec
+		mylib_sv_shutdown();
 		return -1;
 	}
+	mylib_sv_shutdown();
 	free(ip);
 	return 0;
 }
