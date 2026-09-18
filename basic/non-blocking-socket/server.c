@@ -21,6 +21,16 @@ enum AppState
 #define PORT 9111
 #define MAX_PENDING_CONNECTIONS 5
 #define BUFFER_SIZE 1024
+#define MAX_CLNT 5
+
+struct clnt {
+	int socket_fd;
+	uint8_t buffer[BUFFER_SIZE];
+	int recv_cnt;
+	int expect_len;
+	
+	};
+	
 
 void anotherLogic(void)
 {
@@ -29,6 +39,13 @@ void anotherLogic(void)
 
 int main(int argc, char* argv[])
 {
+	struct clnt clients[MAX_CLNT];
+	for(int i = 0, i < MAX_CLNT, i++) {
+		clients.socket_fd = -1;
+	}
+	
+	
+	
 	int packet_size = 16;
 	int packet_count = 4;
 
@@ -36,7 +53,6 @@ int main(int argc, char* argv[])
 
 	struct sockaddr_in address;
     int addrlen = sizeof(address);
-    uint8_t buffer[BUFFER_SIZE] = {0};
 	// init socket
 	if ( (server_fd = socket(AF_INET, SOCK_STREAM, 0) ) == 0) {
 		perror("socket creation failed");
