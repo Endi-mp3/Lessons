@@ -83,7 +83,15 @@ int main(int argc, char* argv[])
 	while(1) {
 		while ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) >= 0) {
             printf("New connection, socket fd is %d\n", new_socket);
-			size_t recv_cnt = 0;
+			int free_slot = -1;
+			for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clnt[i].socket_fd == -1) { 
+                    clnt[i].socket_fd = new_socket; 
+                    clnt[i].recv_cnt = 0; 
+                    free_slot = i;       
+                    break;                   
+                }
+            }
 			while(recv_cnt != packet_size) {
 				int n = recv(new_socket, buffer + recv_cnt, 1, 0); // packet_size
 				if (n == 0) {

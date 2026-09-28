@@ -103,7 +103,8 @@ main handler_packet_cmd(int sock, struct Packet *pkt)
 		case my_sock_cmd_watcher_settings:
 		
 		case my_sock_cmd_full_reset:
-		
+			
+			
 			memset(slot_ir_signal, 0, sizeof(slot_ir_signal));
             memset(slot_ir_status, 0, sizeof(slot_ir_status));
             my_sock_send(sock, pkt->header.id, my_sock_cmd_info, 1, slot_ir_signal);
@@ -112,6 +113,7 @@ main handler_packet_cmd(int sock, struct Packet *pkt)
 		case my_sock_cmd_slot_clean:
 		
 		uint8_t target_slot = pkt->data[0];
+		
 		
 		if (target_slot >= MAX_SLOT)
 		{
@@ -132,7 +134,7 @@ main handler_packet_cmd(int sock, struct Packet *pkt)
 		
             
         for (int i = 0; i < MAX_SLOT; i++) 
-		{
+		{	
 			if (slot_ir_status[i] == 1)
 			{
 				slot_ir_signal[i] = 1;
