@@ -8,17 +8,25 @@
 
 #define PORT 9111
 #define SERVER_ADDRESS "127.0.0.1"
-#define BUFFER_SIZE 1024
+#define BUFFER_MAX_SIZE 255
 
-int main() {
+int main(int argc, char* argv[])
+{
     int sock = 0;
     struct sockaddr_in serv_addr;
-    char buffer[BUFFER_SIZE] = {
+    char buffer[BUFFER_MAX_SIZE] = {
 		0xDE, 0xAD, 0xBE, 0xEF,
 		0xAC, 0xAB, 0x14, 0x88,
 		0xDE, 0xAD, 0xBE, 0xEF,
 		0xAC, 0xAB, 0x14, 0x88,
 	};
+
+	if (argc > 1) {
+		for(int i = 0; i < 4; i++) {
+			buffer[i + 4] = argv[1][i];
+		}
+	}
+	buffer[0] = 16;
 
     // Create socket file descriptor
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -53,8 +61,7 @@ int main() {
     }
 
     // Wait for connection to complete
-    sleep(1);
-
+    sleep(10);
     send(sock, buffer, 4, 0);
     printf("Message sent to server 4 bytes.\n");
 	usleep(500000);

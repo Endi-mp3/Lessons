@@ -10,7 +10,9 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <fcntl.h> /* Added for the nonblocking socket */
+#include <signal.h>
 
+///----------------------------------- Types  -----------------------------------
 enum AppState
 {
 	wait_packet = 0,
@@ -23,36 +25,57 @@ enum AppState
 #define BUFFER_SIZE 1024
 #define MAX_CLNT 5
 
-struct clnt {
-	int socket_fd;
-	uint8_t buffer[BUFFER_SIZE];
-	int recv_cnt;
-	int expect_len;
-	
-	};
-	
-
-void anotherLogic(void)
+struct ClntEntity
 {
-	printf("\n...Doint something else...\n");
+	int clnt_sock_fd;
+	uint8_t clnt_buffer[BUFFER_SIZE];
+	int clnt_rcv_cnt;
+	int clnt_expected_len;
+};
+
+///----------------------------------- Variables -----------------------------------
+volatile sig_atomic_t keep_running = 1;
+struct sockaddr_in address;
+int addrlen = sizeof(address);
+///----------------------------------- Helpers -----------------------------------
+void handle_sigint(int sig)
+{
+    keep_running = 0;
 }
 
-int main(int argc, char* argv[])
+void printBuffer(const uint8_t* buffer, uint16_t len)
 {
-	struct clnt clients[MAX_CLNT];
-	for(int i = 0, i < MAX_CLNT, i++) {
-		clients.socket_fd = -1;
+	for(int i = 0; i < len; i++) {
+		printf("%02x ", (uint8_t)buffer[i]);
 	}
-	
-	
-	
-	int packet_size = 16;
-	int packet_count = 4;
+}
 
-	int server_fd, new_socket;
+void disconnectClient(struct ClntEntity* clnt)
+{
+	if (clnt->clnt_sock_fd != -1)
+		close(clnt->clnt_sock_fd);
+	clnt->clnt_sock_fd = -1;
+	clnt->clnt_rcv_cnt = 0;
+	clnt->clnt_expected_len = 0;
+}
 
-	struct sockaddr_in address;
-    int addrlen = sizeof(address);
+int init_signal()
+{
+	struct sigaction sa;
+	sa.sa_handler = handle_sigint;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	if (sigaction(SIGKILL | SIGTERM | SIGINT, &sa, NULL) == -1) {
+        perror("Failed to set up signal handler");
+        return -1;
+	}
+	return 0;
+}
+
+int init_server()
+{
+	int server_fd;
+
 	// init socket
 	if ( (server_fd = socket(AF_INET, SOCK_STREAM, 0) ) == 0) {
 		perror("socket creation failed");
@@ -71,60 +94,93 @@ int main(int argc, char* argv[])
 		close(server_fd);
 		return -1;
 	}
+	return server_fd;
+}
+
+///----------------------------------- Functions -----------------------------------
+void anotherLogic(void)
+{
+	printf("\n...Doint something else...\n");
+}
+
+int main(int argc, char* argv[])
+{
+	if (init_signal()) {
+		return -1;
+	}
+
+	struct ClntEntity clnt[MAX_CLNT];
+	for(int i = 0; i < MAX_CLNT; i++) {
+		clnt[i].clnt_sock_fd = -1;
+		disconnectClient(&clnt[i]);
+	}
+
+	int server_fd = init_server();
+	if (server_fd < 0) {
+		return -1;
+	}
 
 	if (listen(server_fd, MAX_PENDING_CONNECTIONS) < 0) {
         perror("listen failed");
         close(server_fd);
-        exit(EXIT_FAILURE);
+		return -1;
     }
 
 	printf("Server listening on port %d...\n", PORT);
 
-	while(1) {
-		while ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) >= 0) {
-            printf("New connection, socket fd is %d\n", new_socket);
-			int free_slot = -1;
-			for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (clnt[i].socket_fd == -1) { 
-                    clnt[i].socket_fd = new_socket; 
-                    clnt[i].recv_cnt = 0; 
-                    free_slot = i;       
-                    break;                   
-                }
-            }
-			while(recv_cnt != packet_size) {
-				int n = recv(new_socket, buffer + recv_cnt, 1, 0); // packet_size
-				if (n == 0) {
-					// nothign to recieve
-				} else if (n > 0) {
-					recv_cnt += n;
-					printf("Got N=%d bytes, package count = %d\n", (unsigned)recv_cnt, packet_count);
-					anotherLogic(); // something else
-				} else if (errno == EAGAIN) {
-					continue;
-				} else {
-					perror("recv failed");
-					close(new_socket);
-					close(server_fd);
-					return -1;
+	while(keep_running) {
+		int new_socket;
+		new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+		if (new_socket != -1) {
+			for (int i = 0; i < MAX_CLNT; i++) {
+				if (clnt[i].clnt_sock_fd == -1) {
+					printf("New connection, socket fd is %d\n", new_socket);
+					disconnectClient(&clnt[i]);
+					clnt[i].clnt_sock_fd = new_socket;
+					break;
 				}
 			}
-			printf("Recv Data: { ");
-			for(int i = 0; i < packet_size; i++) {
-				printf("%02x ", buffer[i]);
-			}
-			printf("}\n");
+		}
 
-			packet_count--;
-			if (packet_count == 0) {
-				close(new_socket);
-				close(server_fd);
-				return 0;
+		for (int clnt_idx = 0; clnt_idx < MAX_CLNT; clnt_idx++) {
+			if (clnt[clnt_idx].clnt_sock_fd == -1) {
+				continue;
 			}
-            close(new_socket); // Close the connection
+
+			int n = recv(clnt[clnt_idx].clnt_sock_fd,
+					clnt[clnt_idx].clnt_buffer + clnt[clnt_idx].clnt_rcv_cnt,
+					1, 0); // packet_size
+
+			if (n == 0) {
+				// nothign to recieve
+			} else if (n > 0) {
+				clnt[clnt_idx].clnt_rcv_cnt += n;
+				if (clnt[clnt_idx].clnt_rcv_cnt == 1)
+					clnt[clnt_idx].clnt_expected_len = clnt[clnt_idx].clnt_buffer[0];
+
+				if (clnt[clnt_idx].clnt_rcv_cnt == clnt[clnt_idx].clnt_expected_len) {
+					printf("Got full package from client %d: {", (unsigned)clnt[clnt_idx].clnt_buffer[4]);
+					printBuffer(clnt[clnt_idx].clnt_buffer, clnt[clnt_idx].clnt_rcv_cnt);
+					printf("}\n and close it\n");
+					disconnectClient(&clnt[clnt_idx]);
+				}
+
+				anotherLogic(); // something else
+			} else if (errno == EAGAIN) {
+				continue;
+			} else {
+				perror("recv failed");
+				disconnectClient(&clnt[clnt_idx]);
+				continue;
+			}
         }
 	}
 
+	for(int i = 0; i < MAX_CLNT; i++) {
+		disconnectClient(&clnt[i]);
+	}
+
+	close(server_fd);
 	return 0;
 }
 
