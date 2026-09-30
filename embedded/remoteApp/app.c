@@ -144,7 +144,7 @@ int s_fetch_slots_from_device(const char* server_ip, int server_port)
 		return -1;
 	}
 
-	// Send request for slot list (0x02 = get trigger menu)
+	// Send request for slot list
 	my_sock_send(sock, 0x04, my_sock_cmd_slot_get, 0, NULL);
 	pkt = my_sock_recv(sock, 4096);
 	my_close(sock, "fetch slots");
@@ -155,44 +155,33 @@ int s_fetch_slots_from_device(const char* server_ip, int server_port)
 	}
 
 	// Parse slot data from packet
-	// Expected format: slot_id(1) | name_len(1) | name(n) | ir_data_len(2) | ir_data(n) | ...
-	// This is simplified; adjust based on actual protocol
+	// Expected format: array of SlotInfo structures
+	// SlotInfo = { int slot_id(4), char slot_name[32], char ir_data[4] }
 
 	slots_count = 0;
-	uint8_t *data = pkt->data;
 	uint32_t data_len = pkt->header.len;
-	uint32_t offset = 0;
+	uint32_t slot_size = sizeof(SlotInfo);
 
-	while (offset < data_len && slots_count < MAX_SLOTS) {
-		if (offset + 2 > data_len) break;  // need at least slot_id + name_len
+	// Calculate number of slots
+	int num_slots = data_len / slot_size;
+	if (num_slots > MAX_SLOTS) {
+		num_slots = MAX_SLOTS;
+	}
 
-		int slot_id = data[offset++];
-		int name_len = data[offset++];
-
-		if (offset + name_len > data_len) break;
-
-		slots[slots_count].slot_id = slot_id;
-		strncpy(slots[slots_count].slot_name, (const char*)(data + offset), name_len);
-		slots[slots_count].slot_name[name_len] = '\0';
-		offset += name_len;
-
-		// IR data (simplified: just store raw hex)
-		if (offset + 2 > data_len) break;
-		int ir_len = (data[offset] << 8) | data[offset + 1];
-		offset += 2;
-
-		if (offset + ir_len > data_len) break;
-		snprintf(slots[slots_count].ir_data, sizeof(slots[slots_count].ir_data),
-				 "[%d bytes]", ir_len);
-		offset += ir_len;
-
+	// Copy SlotInfo structures directly
+	SlotInfo *src_slots = (SlotInfo *)pkt->data;
+	for (int i = 0; i < num_slots; i++) {
+		memcpy(&slots[i], &src_slots[i], sizeof(SlotInfo));
 		slots_count++;
+
+		MYLIB_CLI_PRINT("Slot %d: %s\n", slots[i].slot_id, slots[i].slot_name);
 	}
 
 	my_free(pkt, 0, "pkt");
 	MYLIB_CLI_PRINT("Fetched %d slots from device\n", slots_count);
 	return 0;
 }
+
 
 /**
  * Send trigger command for selected slot
