@@ -22,8 +22,8 @@ struct MenuButtonSlot
 struct MenuTrigerSlot
 {
 	MyLibMenu *TrigerSlot;
-	int TrigerBtn;
-	int TrigerBtnStart;
+	int TriggerBtn;
+	int TriggerBtnStart;
 };
 
 

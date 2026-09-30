@@ -23,11 +23,17 @@ int mylib_cli_init(int split_id);
  */
 int mylib_cli_write(const char *line);
 
+/**
+ * Render console to screen (call this after MYLIB_CLI_PRINT to see output).
+ */
+int mylib_cli_render(void);
+
 #define MYLIB_CLI_PRINT(...) \
 	{   \
 		char MYLIB_CLI_PRINT_BUF[4096];	\
 		snprintf(MYLIB_CLI_PRINT_BUF, 4096, __VA_ARGS__); \
 		mylib_cli_write(MYLIB_CLI_PRINT_BUF); \
+		mylib_cli_render(); \
 	}
 
 /**

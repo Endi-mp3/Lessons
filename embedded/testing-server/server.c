@@ -28,10 +28,10 @@ enum AppState
 struct ClntEntity
 {
 	int clnt_sock_fd;
-	uint8_t clnt_buffer[BUFFER_SIZE];
 	int clnt_rcv_cnt;
 	int clnt_expected_len;
 	int clnt_sent_back;
+	uint8_t clnt_buffer[BUFFER_SIZE];
 };
 
 ///----------------------------------- Variables -----------------------------------
@@ -166,19 +166,19 @@ int main(int argc, char* argv[])
 					1, 0); // packet_size
 
 			if (n == 0) {
-				// nothign to recieve
+				// nothing to recieve
 			} else if (n > 0) {
 				clnt[clnt_idx].clnt_rcv_cnt += n;
-				if (clnt[clnt_idx].clnt_rcv_cnt == 1)
-					clnt[clnt_idx].clnt_expected_len = clnt[clnt_idx].clnt_buffer[0];
+				if (clnt[clnt_idx].clnt_rcv_cnt == sizeof(struct Header))
+					clnt[clnt_idx].clnt_expected_len = PACKET_PTR_FULL_SIZE((struct Packet*)clnt[clnt_idx].clnt_buffer);
 
 				if (clnt[clnt_idx].clnt_rcv_cnt == clnt[clnt_idx].clnt_expected_len) {
 					printf("Got full package from client %d: {", (unsigned)clnt[clnt_idx].clnt_buffer[4]);
 					printBuffer(clnt[clnt_idx].clnt_buffer, clnt[clnt_idx].clnt_rcv_cnt);
-					printf("}\n and close it\n");
 
-					// call testing
-
+					call_testing_function(&clnt[clnt_idx]);
+					printf("}\nSend buffer back: {");
+					printBuffer(clnt[clnt_idx].clnt_buffer, clnt[clnt_idx].clnt_expected_len);
 					while(clnt[clnt_idx].clnt_sent_back != clnt[clnt_idx].clnt_expected_len) {
 						int r = send(clnt[clnt_idx].clnt_sock_fd,
 								clnt[clnt_idx].clnt_buffer + clnt[clnt_idx].clnt_sent_back,
@@ -191,6 +191,7 @@ int main(int argc, char* argv[])
 						clnt[clnt_idx].clnt_sent_back += r;
 					}
 					disconnectClient(&clnt[clnt_idx]);
+					printf("}\nsent it back and close it\n");
 				}
 
 				anotherLogic(); // something else

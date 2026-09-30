@@ -13,6 +13,12 @@ static int con_split_id = -1;
 static char *lines[MSV_CON_MAX_LINES];
 static int line_count = 0;
 
+#define CLI_MAX_LINES 100
+#define CLI_MAX_LEN   256
+
+static char cli_lines[CLI_MAX_LINES][CLI_MAX_LEN];
+static int cli_line_count = 0;
+
 static void redraw_console(void)
 {
     if (con_split_id < 0) return;
@@ -33,6 +39,8 @@ int mylib_cli_init(int split_id)
     con_split_id = split_id;
     for (int i = 0; i < MSV_CON_MAX_LINES; i++) lines[i] = NULL;
     line_count = 0;
+    for (int i = 0; i < CLI_MAX_LINES; i++) cli_lines[i][0] = '\0';
+    cli_line_count = 0;
     redraw_console();
     return 0;
 }
@@ -68,12 +76,6 @@ int mylib_cli_run(mylib_cli_on_command_fn on_command)
     return 0;
 }
 
-#define CLI_MAX_LINES 100
-#define CLI_MAX_LEN   256
-
-static char cli_lines[CLI_MAX_LINES][CLI_MAX_LEN];
-static int cli_line_count = 0;
-
 int mylib_cli_write(const char *line)
 {
     if (cli_line_count < CLI_MAX_LINES) {
@@ -85,6 +87,37 @@ int mylib_cli_write(const char *line)
             strcpy(cli_lines[i-1], cli_lines[i]);
         snprintf(cli_lines[CLI_MAX_LINES-1], CLI_MAX_LEN, "%s", line);
     }
+    return 0;
+}
+
+/**
+ * Render stored CLI lines to the console split window.
+ * Called after MYLIB_CLI_WRITE or via MYLIB_CLI_PRINT macro.
+ */
+int mylib_cli_render(void)
+{
+    if (con_split_id < 0) return -1;
+    
+    WINDOW *w = mylib_sv_get_win(con_split_id);
+    if (!w) return -1;
+
+    mylib_sv_size_t sz;
+    if (mylib_sv_get_size_id(con_split_id, &sz) != 0) return -1;
+
+    // Clear the content area
+    mylib_io_clear(con_split_id);
+
+    // Display last (max_y - 2) lines from history
+    int start = (cli_line_count > sz.h - 2) ? cli_line_count - (sz.h - 2) : 0;
+    int row = 1;
+    for (int i = start; i < cli_line_count && row < sz.h - 1; i++, row++) {
+        mylib_io_print_at(con_split_id, row, 1, "%s", cli_lines[i]);
+    }
+
+    // Redraw border and flush to screen
+    box(w, 0, 0);
+    wrefresh(w);
+    
     return 0;
 }
 
@@ -154,5 +187,4 @@ int mylib_cli_output_step(int split_id)
     }
     wnoutrefresh(w);
     return 0;
-
 }

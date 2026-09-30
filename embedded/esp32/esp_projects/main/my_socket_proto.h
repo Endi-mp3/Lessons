@@ -21,6 +21,7 @@ enum MySockCommands
 	my_sock_cmd_slot_trigger,
 	my_sock_cmd_slot_clean,
 	my_sock_cmd_slot_clean_all,
+	my_sock_cmd_slot_get,
 	my_sock_cmd_watcher_settings,
 	my_sock_cmd_wifi_settings,
 	my_sock_cmd_update_slot,
@@ -46,5 +47,16 @@ struct Packet
     uint8_t data[0];
 };
 #pragma pack(pop)
+
+#define PACKET_FULL_SIZE(pkt) (sizeof(struct Header) + (pkt).header.len)
+#define PACKET_PTR_FULL_SIZE(pkt) (sizeof(struct Header) + (pkt)->header.len)
+
+// Slot data storage
+#define MAX_SLOTS 64
+typedef struct {
+	int slot_id;
+	char slot_name[32];
+	char ir_data[64];  // hex string representation
+} SlotInfo;
 
 
