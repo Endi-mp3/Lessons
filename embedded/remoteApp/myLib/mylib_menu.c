@@ -341,7 +341,7 @@ int mylib_menu_step(WINDOW* w, MyLibMenu **ppCurrent, int split_id)
 							mvprintw(LINES-2, 0, "Input new number: ");
 							getnstr(buf, sizeof(buf)-1);
 						} else {
-							mylib_io_print_at(split_id, idx+4, 2, "Input new number: ");
+							mylib_io_print_at(split_id, idx + 4, 2, "Input new number: ");
 							wgetnstr(w, buf, sizeof(buf)-1);
 						}
 						it->data.intValue = atoi(buf);
@@ -356,7 +356,7 @@ int mylib_menu_step(WINDOW* w, MyLibMenu **ppCurrent, int split_id)
 							mvprintw(LINES-2, 0, "Input new string: ");
 							getnstr(buf, sizeof(buf)-1);
 						} else {
-							mylib_io_print_at(split_id, idx+4, 2, "Input new string: ");
+							mylib_io_print_at(split_id, idx + 4, 2, "Input new string: ");
 							wgetnstr(w, buf, sizeof(buf)-1);
 						}
 						free(it->data.strValue);

@@ -62,7 +62,7 @@ int main(int __attribute((unused)) argc, char* __attribute((unused)) argv[])
 	MYLIB_CLI_PRINT("Test test test\n");
 	while(showResult == MYLIB_MENU_RET_OK) {
 		showResult = mylib_menu_step(menuWindow, &current_menu, appScreens.appscr_menu);
-		mylib_cli_output_step(appScreens.appscr_cli);
+	//	mylib_cli_output_step(appScreens.appscr_cli);
 		switch(showResult) {
 			case MYLIB_MENU_RET_BTN_QUIT:
 				endwin();

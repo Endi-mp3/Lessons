@@ -1,6 +1,7 @@
 #include "my_network.h"
 #include "my_ir.h"
-#include "my_socket_proto.h"
+#include "my_logic.h"
+
 
 
 static ir_raw_packet_t lvIR_Recv_Packet = { 0 };
@@ -14,22 +15,9 @@ int callback_on_receive(char* buffer, uint32_t* length)
 	printf("\n");
 	struct Packet *pkt = (struct Packet *)buffer;
 
-	switch (pkt->header.cmd)
-	{
-	case my_sock_cmd_slot_assign:
-		
-		// pseudo code
-		// form success answer package
-		// form error answer package
-		//
-		break;
-	default:
-		break;
-	}
+	int r = handle_package(pkt);
 
-
-	// обработка сигналов  (switch)
-	return 0;
+	return r;
 }
 
 void app_main(void)
