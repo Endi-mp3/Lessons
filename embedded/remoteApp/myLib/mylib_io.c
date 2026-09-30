@@ -21,7 +21,7 @@ int mylib_io_print_at(int split_id, int row, int col, const char *fmt, ...)
     wmove(w, row, col);
     vw_printw(w, fmt, ap);
     va_end(ap);
-//    wrefresh(w);
+    wrefresh(w);
     return 0;
 }
 

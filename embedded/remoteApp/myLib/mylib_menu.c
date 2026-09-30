@@ -79,7 +79,7 @@ int mylib_menu_create_int_config(MyLibMenu* parentPtr, const char* title, int de
 												title,
 												global_id_counter++,
 												DEFAULT_PRIORITY,
-												MYLIB_MENU_ITEM_CHECKBOX);
+												MYLIB_MENU_ITEM_INT);
     item->data.intValue = defaultValue;
     return item->id;
 }
@@ -205,180 +205,293 @@ int mylib_menu_show(MyLibMenu* root, int split_id)
 int mylib_menu_step(WINDOW* w, MyLibMenu **ppCurrent, int split_id)
 {
     if (!ppCurrent || !*ppCurrent)
-		return MYLIB_MENU_RET_ERROR;
+        return MYLIB_MENU_RET_ERROR;
+
     MyLibMenu *current = *ppCurrent;
     static int choice = 0;
-	if (!w)
-		return MYLIB_MENU_RET_ERROR;
 
-    // --- Отрисовка ---
+    // state for inline edit mode
+    static int edit_mode = 0;
+    static int edit_id = -1;
+    static bool edit_is_string = false;
+    static char edit_buf[256];
+    static int edit_pos = 0;
+
+    if (!w)
+        return MYLIB_MENU_RET_ERROR;
+
+    // --- Edit mode: capture characters without blocking ---
+    if (edit_mode) {
+        if (split_id == -1) {
+            clear();
+            mvprintw(0, 0, "Menu: %s", current->title);
+            mvprintw(LINES - 2, 0, "Input: %s", edit_buf);
+        } else {
+            werase(w);
+            box(w, 0, 0);
+            mvwprintw(w, 0, 2, " %s ", current->title);
+
+            // draw current menu again to keep UI stable
+            int idx = 0;
+            int currentLastPosition = 0;
+            for (int prio = 0; prio <= global_max_prio; prio++) {
+                for (MyLibMenuItem* it = current->items; it; it = it->next) {
+                    if (it->prio < 0 || it->prio != prio) continue;
+                    it->position = currentLastPosition++;
+                    if (idx == choice) wattron(w, A_REVERSE);
+                    switch (it->type) {
+                        case MYLIB_MENU_ITEM_CHECKBOX:
+                            mylib_io_print_at(split_id, idx + 2, 2, "[%c] %s",
+                                             it->data.boolValue ? 'X' : ' ', it->title);
+                            break;
+                        case MYLIB_MENU_ITEM_INT:
+                            mylib_io_print_at(split_id, idx + 2, 2, "%s: %d",
+                                             it->title, it->data.intValue);
+                            break;
+                        case MYLIB_MENU_ITEM_STRING:
+                            mylib_io_print_at(split_id, idx + 2, 2, "%s: %s",
+                                             it->title, it->data.strValue ? it->data.strValue : "");
+                            break;
+                        default:
+                            mylib_io_print_at(split_id, idx + 2, 2, "%s", it->title);
+                            break;
+                    }
+                    if (idx == choice) wattroff(w, A_REVERSE);
+                    idx++;
+                }
+            }
+
+            mylib_sv_size_t sz;
+            mylib_sv_get_size_id(split_id, &sz);
+            int prompt_row = (sz.h - 3 > 1) ? sz.h - 3 : 1;
+            mylib_io_print_at(split_id, prompt_row, 2, "Input: %s", edit_buf);
+        }
+
+        int ch = wgetch(w);
+        if (ch == ERR) {
+            return MYLIB_MENU_RET_OK;
+        }
+
+        if (ch == 27) { // ESC cancel edit
+            edit_mode = 0;
+            edit_buf[0] = '\0';
+            edit_pos = 0;
+            return MYLIB_MENU_RET_OK;
+        }
+
+        if (ch == '\n' || ch == KEY_ENTER) {
+            MyLibMenuItem* item = NULL;
+            for (MyLibMenuItem* it = current->items; it; it = it->next) {
+                if (it->id == edit_id) {
+                    item = it;
+                    break;
+                }
+            }
+
+            if (item) {
+                if (item->type == MYLIB_MENU_ITEM_INT) {
+                    item->data.intValue = atoi(edit_buf);
+                } else if (item->type == MYLIB_MENU_ITEM_STRING) {
+                    free(item->data.strValue);
+                    item->data.strValue = strdup(edit_buf);
+                }
+            }
+
+            edit_mode = 0;
+            edit_id = -1;
+            edit_is_string = false;
+            edit_buf[0] = '\0';
+            edit_pos = 0;
+            return MYLIB_MENU_RET_OK;
+        }
+
+        if ((ch == KEY_BACKSPACE || ch == 127) && edit_pos > 0) {
+            edit_buf[--edit_pos] = '\0';
+            return MYLIB_MENU_RET_OK;
+        }
+
+        if (edit_is_string) {
+            if (ch >= 32 && ch < 127 && edit_pos < 255) {
+                edit_buf[edit_pos++] = (char)ch;
+                edit_buf[edit_pos] = '\0';
+            }
+        } else {
+            if (((ch >= '0' && ch <= '9') || ch == '-' || ch == '+') &&
+                edit_pos < 31) {
+                edit_buf[edit_pos++] = (char)ch;
+                edit_buf[edit_pos] = '\0';
+            }
+        }
+
+        return MYLIB_MENU_RET_OK;
+    }
+
+    // --- Normal menu drawing ---
     if (split_id == -1) {
         clear();
         mvprintw(0, 0, "Menu: %s", current->title);
     } else {
-		werase(w);
-		box(w, 0, 0);
-		mvwprintw(w, 0, 2, " %s ", current->title);
+        werase(w);
+        box(w, 0, 0);
+        mvwprintw(w, 0, 2, " %s ", current->title);
         mylib_io_clear(split_id);
         mylib_io_print_at(split_id, 0, 1, "Menu: %s", current->title);
     }
 
     int idx = 0;
-	int currentLastPosition = 0;
-	for(int prio = 0; prio <= global_max_prio; prio++) {
-		for (MyLibMenuItem* it = current->items; it; it = it->next) {
-			if (it->prio < 0 || it->prio != prio) {
-				continue;
-			}
+    int currentLastPosition = 0;
 
-			if (idx == choice) wattron(w, A_REVERSE);
+    for (int prio = 0; prio <= global_max_prio; prio++) {
+        for (MyLibMenuItem* it = current->items; it; it = it->next) {
+            if (it->prio < 0 || it->prio != prio)
+                continue;
 
-			it->position = currentLastPosition++;
+            if (idx == choice) wattron(w, A_REVERSE);
 
-			if (split_id == -1) {
-				switch (it->type) {
-					case MYLIB_MENU_ITEM_CHECKBOX:
-						mvprintw(idx+2, 2, "[%c] %s", it->data.boolValue?'X':' ', it->title);
-						break;
-					case MYLIB_MENU_ITEM_INT:
-						mvprintw(idx+2, 2, "%s: %d", it->title, it->data.intValue);
-						break;
-					case MYLIB_MENU_ITEM_STRING:
-						mvprintw(idx+2, 2, "%s: %s", it->title,
-								 it->data.strValue?it->data.strValue:"");
-						break;
-					default:
-						mvprintw(idx+2, 2, "%s", it->title);
-						break;
-				}
-			} else {
-				switch (it->type) {
-					case MYLIB_MENU_ITEM_CHECKBOX:
-						mylib_io_print_at(split_id, idx+2, 2, "[%c] %s",
-										it->data.boolValue?'X':' ', it->title);
-						break;
-					case MYLIB_MENU_ITEM_INT:
-						mylib_io_print_at(split_id, idx+2, 2, "%s: %d",
-										it->title, it->data.intValue);
-						break;
-					case MYLIB_MENU_ITEM_STRING:
-						mylib_io_print_at(split_id, idx+2, 2, "%s: %s",
-										it->title, it->data.strValue?it->data.strValue:"");
-						break;
-					default:
-						mylib_io_print_at(split_id, idx+2, 2, "%s", it->title);
-						break;
-				}
-			}
+            it->position = currentLastPosition++;
 
-			if (idx == choice) wattroff(w, A_REVERSE);
-			idx++;
-		}
-	}
+            if (split_id == -1) {
+                switch (it->type) {
+                    case MYLIB_MENU_ITEM_CHECKBOX:
+                        mvprintw(idx + 2, 2, "[%c] %s", it->data.boolValue ? 'X' : ' ', it->title);
+                        break;
+                    case MYLIB_MENU_ITEM_INT:
+                        mvprintw(idx + 2, 2, "%s: %d", it->title, it->data.intValue);
+                        break;
+                    case MYLIB_MENU_ITEM_STRING:
+                        mvprintw(idx + 2, 2, "%s: %s", it->title,
+                                 it->data.strValue ? it->data.strValue : "");
+                        break;
+                    default:
+                        mvprintw(idx + 2, 2, "%s", it->title);
+                        break;
+                }
+            } else {
+                switch (it->type) {
+                    case MYLIB_MENU_ITEM_CHECKBOX:
+                        mylib_io_print_at(split_id, idx + 2, 2, "[%c] %s",
+                                         it->data.boolValue ? 'X' : ' ', it->title);
+                        break;
+                    case MYLIB_MENU_ITEM_INT:
+                        mylib_io_print_at(split_id, idx + 2, 2, "%s: %d",
+                                         it->title, it->data.intValue);
+                        break;
+                    case MYLIB_MENU_ITEM_STRING:
+                        mylib_io_print_at(split_id, idx + 2, 2, "%s: %s",
+                                         it->title, it->data.strValue ? it->data.strValue : "");
+                        break;
+                    default:
+                        mylib_io_print_at(split_id, idx + 2, 2, "%s", it->title);
+                        break;
+                }
+            }
+
+            if (idx == choice) wattroff(w, A_REVERSE);
+            idx++;
+        }
+    }
+
     wrefresh(w);
 
-    // --- Обработка ввода ---
+    // --- Handle input ---
     int ch = wgetch(w);
-    if (ch == ERR) return MYLIB_MENU_RET_OK; // нет ввода
+    if (ch == ERR)
+        return MYLIB_MENU_RET_OK;
 
     int itemCount = 0;
-    for (MyLibMenuItem* it = current->items; it; it = it->next) itemCount++;
+    for (MyLibMenuItem* it = current->items; it; it = it->next)
+        itemCount++;
 
     switch (ch) {
-        case KEY_UP: case 'k':
+        case KEY_UP:
+        case 'k':
             choice = (choice - 1 + itemCount) % itemCount;
             break;
-        case KEY_DOWN: case 'j':
+
+        case KEY_DOWN:
+        case 'j':
             choice = (choice + 1) % itemCount;
             break;
-		case KEY_LEFT:
-			for (MyLibMenuItem* it = current->items; it; it = it->next) {
-				if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
-					it->data.intValue -= 1;
-					break;
-				}
-			}
-			break;
-		case KEY_RIGHT:
-			for (MyLibMenuItem* it = current->items; it; it = it->next) {
-				if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
-					it->data.intValue += 1;
-					break;
-				}
-			}
-			break;
 
-        case 10: case ' ': // Enter/Space
+        case KEY_LEFT:
+            for (MyLibMenuItem* it = current->items; it; it = it->next) {
+                if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
+                    it->data.intValue -= 1;
+                    break;
+                }
+            }
+            break;
+
+        case KEY_RIGHT:
+            for (MyLibMenuItem* it = current->items; it; it = it->next) {
+                if (it->position == choice && it->type == MYLIB_MENU_ITEM_INT) {
+                    it->data.intValue += 1;
+                    break;
+                }
+            }
+            break;
+
+        case 10:
+        case ' ':
         {
-			for (MyLibMenuItem* it = current->items; it; it = it->next) {
-				if (it->position == choice) {
-					if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
-						current = it->data.submenu;
-						choice = 0;
-						break;
-					} else if (it->id == MYLIB_MENU_RET_BTN_QUIT) {
-						return MYLIB_MENU_RET_BTN_QUIT;
-					} else if (it->id == MYLIB_MENU_RET_BTN_START) {
-						return MYLIB_MENU_RET_BTN_START;
-					} else if (it->id == MYLIB_MENU_RET_BTN_BACK) {
-						if (current->parent) {
-							current = current->parent;
-							choice = 0;
-							break;
-						}
-					} else if (it->type == MYLIB_MENU_ITEM_BUTTON ) {
-						if (it->data.callback != NULL)
-							return it->data.callback(it);
-						return it->id;
-					} else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
-						it->data.boolValue = !it->data.boolValue;
-						break;
-					} else if (it->type == MYLIB_MENU_ITEM_INT) {
-						echo();
-						curs_set(1);
-						char buf[32];
-						if (split_id == -1) {
-							mvprintw(LINES-2, 0, "Input new number: ");
-							getnstr(buf, sizeof(buf)-1);
-						} else {
-							mylib_io_print_at(split_id, idx + 4, 2, "Input new number: ");
-							wgetnstr(w, buf, sizeof(buf)-1);
-						}
-						it->data.intValue = atoi(buf);
-						noecho();
-						curs_set(0);
-						break;
-					} else if (it->type == MYLIB_MENU_ITEM_STRING) {
-						echo();
-						curs_set(1);
-						char buf[256];
-						if (split_id == -1) {
-							mvprintw(LINES-2, 0, "Input new string: ");
-							getnstr(buf, sizeof(buf)-1);
-						} else {
-							mylib_io_print_at(split_id, idx + 4, 2, "Input new string: ");
-							wgetnstr(w, buf, sizeof(buf)-1);
-						}
-						free(it->data.strValue);
-						it->data.strValue = strdup(buf);
-						noecho();
-						curs_set(0);
-						break;
-					}
-				}
-			}
+            for (MyLibMenuItem* it = current->items; it; it = it->next) {
+                if (it->position == choice) {
+                    if (it->type == MYLIB_MENU_ITEM_SUBMENU) {
+                        current = it->data.submenu;
+                        choice = 0;
+                        break;
+                    } else if (it->id == MYLIB_MENU_RET_BTN_QUIT) {
+                        return MYLIB_MENU_RET_BTN_QUIT;
+                    } else if (it->id == MYLIB_MENU_RET_BTN_START) {
+                        return MYLIB_MENU_RET_BTN_START;
+                    } else if (it->id == MYLIB_MENU_RET_BTN_BACK) {
+                        if (current->parent) {
+                            current = current->parent;
+                            choice = 0;
+                            break;
+                        }
+                    } else if (it->type == MYLIB_MENU_ITEM_BUTTON) {
+                        if (it->data.callback != NULL)
+                            return it->data.callback(it);
+                        return it->id;
+                    } else if (it->type == MYLIB_MENU_ITEM_CHECKBOX) {
+                        it->data.boolValue = !it->data.boolValue;
+                        break;
+                    } else if (it->type == MYLIB_MENU_ITEM_INT || it->type == MYLIB_MENU_ITEM_STRING) {
+                        edit_mode = 1;
+                        edit_id = it->id;
+                        edit_is_string = (it->type == MYLIB_MENU_ITEM_STRING);
+                        edit_pos = 0;
+                        memset(edit_buf, 0, sizeof(edit_buf));
+
+                        if (edit_is_string) {
+                            strncpy(edit_buf, it->data.strValue ? it->data.strValue : "", sizeof(edit_buf) - 1);
+                            edit_pos = (int)strlen(edit_buf);
+                        } else {
+                            snprintf(edit_buf, sizeof(edit_buf), "%d", it->data.intValue);
+                            edit_pos = (int)strlen(edit_buf);
+                        }
+                        break;
+                    }
+                }
+            }
         }
         break;
+
         case 27: // ESC
             if (current->parent) {
                 current = current->parent;
                 choice = 0;
-            } else return MYLIB_MENU_RET_BTN_QUIT;
+            } else {
+                return MYLIB_MENU_RET_BTN_QUIT;
+            }
             break;
     }
-	if (current) {
-		*ppCurrent = current;
-	}
+
+    if (current) {
+        *ppCurrent = current;
+    }
+
     return MYLIB_MENU_RET_OK;
 }
 

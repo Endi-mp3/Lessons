@@ -114,7 +114,7 @@ int call_testing_function(struct ClntEntity* ent)
 ///----------------------------------- Functions -----------------------------------
 void anotherLogic(void)
 {
-	printf("\n...Doint something else...\n");
+//	printf("\n...Doint something else...\n");
 }
 
 int main(int argc, char* argv[])
@@ -190,7 +190,6 @@ int main(int argc, char* argv[])
 						}
 						clnt[clnt_idx].clnt_sent_back += r;
 					}
-
 					disconnectClient(&clnt[clnt_idx]);
 				}
 
