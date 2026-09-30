@@ -56,7 +56,7 @@ struct Packet
 typedef struct {
 	int slot_id;
 	char slot_name[32];
-	char ir_data[64];  // hex string representation
+	char ir_data[4];  // hex string representation
 } SlotInfo;
 
 
