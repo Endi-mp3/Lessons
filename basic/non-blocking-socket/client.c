@@ -45,10 +45,12 @@ int main(int argc, char* argv[])
     }
 
     // Set the socket to non-blocking mode
+	/*
     if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0) {
         perror("fcntl failed");
         exit(EXIT_FAILURE);
     }
+	*/
 
     // Connect to server
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {

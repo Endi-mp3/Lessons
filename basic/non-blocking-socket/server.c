@@ -40,6 +40,7 @@ int addrlen = sizeof(address);
 ///----------------------------------- Helpers -----------------------------------
 void handle_sigint(int sig)
 {
+	printf("Got interrupt signal. Stop working\n");
     keep_running = 0;
 }
 
@@ -65,7 +66,7 @@ int init_signal()
 	sa.sa_handler = handle_sigint;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
-	if (sigaction(SIGKILL | SIGTERM | SIGINT, &sa, NULL) == -1) {
+	if (sigaction(SIGINT, &sa, NULL) == -1) {
         perror("Failed to set up signal handler");
         return -1;
 	}

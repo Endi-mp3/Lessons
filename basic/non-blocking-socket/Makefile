@@ -1,6 +1,7 @@
 TARGET_DIR := build
 APP_SERVER := server
 APP_CLIENT := client
+.PHONY: all
 
 prep:
 	mkdir -p $(TARGET_DIR)
