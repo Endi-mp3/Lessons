@@ -47,7 +47,8 @@ bool my_sock_send(int sock, uint16_t id, enum MySockCommands cmd, size_t data_pk
     pkt->header.cmd = cmd;
     pkt->header.id  = id;
     pkt->header.len = data_pkt_len;
-    memcpy(pkt->data, data, data_pkt_len);
+	if (data)
+		memcpy(pkt->data, data, data_pkt_len);
 	int r = send(sock, pkt, sizeof(struct Packet) + pkt->header.len, 0);
 	my_free(pkt, sizeof(struct Packet) + data_pkt_len, "struct Packet* pkt");
 	return r != -1;

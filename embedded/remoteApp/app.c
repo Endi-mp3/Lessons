@@ -154,26 +154,18 @@ int s_fetch_slots_from_device(const char* server_ip, int server_port)
 		return -1;
 	}
 
-	// Parse slot data from packet
-	// Expected format: array of SlotInfo structures
-	// SlotInfo = { int slot_id(4), char slot_name[32], char ir_data[4] }
-
 	slots_count = 0;
 	uint32_t data_len = pkt->header.len;
 	uint32_t slot_size = sizeof(SlotInfo);
 
 	// Calculate number of slots
 	int num_slots = data_len / slot_size;
-	if (num_slots > MAX_SLOTS) {
-		num_slots = MAX_SLOTS;
-	}
+	num_slots = (num_slots > MAX_SLOTS) ? (MAX_SLOTS) : (num_slots);
 
 	// Copy SlotInfo structures directly
 	SlotInfo *src_slots = (SlotInfo *)pkt->data;
-	for (int i = 0; i < num_slots; i++) {
+	for (int i = 0; i < num_slots; i++, slots_count++) {
 		memcpy(&slots[i], &src_slots[i], sizeof(SlotInfo));
-		slots_count++;
-
 		MYLIB_CLI_PRINT("Slot %d: %s\n", slots[i].slot_id, slots[i].slot_name);
 	}
 
@@ -197,9 +189,8 @@ int s_send_slot_trigger(const char* server_ip, int server_port, int slot_id)
 		return -1;
 	}
 
-	// Send trigger command: slot_id(1)
 	uint8_t payload[1] = { (uint8_t)slot_id };
-	my_sock_send(sock, 0x04, 0x03, 1, payload);  // 0x03 = trigger slot command
+	my_sock_send(sock, 0x04, my_sock_cmd_slot_trigger, 1, payload);
 
 	pkt = my_sock_recv(sock, 4096);
 	my_close(sock, "trigger slot");
