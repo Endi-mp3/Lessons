@@ -28,6 +28,12 @@ static SlotInfo slots[MAX_SLOTS];
 static int slots_count = 0;
 static int selected_slot = -1;
 
+typedef struct {
+	int slot_index;
+	int slot_id;
+} SlotContext;
+
+static SlotContext slot_contexts[MAX_SLOTS];
 ///---------------- Definitions ----------------
 int cb_device_clean_slot(void* __attribute((unused)) pvPtr);
 int cb_device_full_reset(void* __attribute((unused)) pvPtr);
@@ -210,21 +216,42 @@ int s_send_slot_trigger(const char* server_ip, int server_port, int slot_id)
  */
 int cb_slot_selected(void* pvPtr)
 {
-	MyLibMenuItem* item = (MyLibMenuItem*)pvPtr;
-	if (!item) return -1;
+	if (!pvPtr) {
+		MYLIB_CLI_PRINT("Error: NULL context in cb_slot_selected\n");
+		return -1;
+	}
 
-	// The item data is stored as intValue (slot index)
-	int slot_idx = item->data.intValue;
-	if (slot_idx < 0 || slot_idx >= slots_count) return -1;
+	/* Cast to button item - but we need to extract our context somehow */
+	MyLibMenuItem* item = (MyLibMenuItem*)pvPtr;
+
+	/* The context is stored in slot_contexts array based on slot_id */
+	SlotContext* ctx = NULL;
+	for (int i = 0; i < slots_count; i++) {
+		if (slot_contexts[i].slot_id == item->id) {
+			ctx = &slot_contexts[i];
+			break;
+		}
+	}
+
+	if (!ctx || ctx->slot_index < 0 || ctx->slot_index >= slots_count) {
+		MYLIB_CLI_PRINT("Error: Invalid slot context\n");
+		return -1;
+	}
 
 	char* ip;
-	mylib_menu_get_config(menu, menuNetCtx.IP, &ip);
+	if (mylib_menu_get_config(menu, menuNetCtx.IP, &ip) != 0) {
+		MYLIB_CLI_PRINT("Error: Cannot get device IP\n");
+		return -1;
+	}
 
-	MYLIB_CLI_PRINT("Sending trigger for slot: %s\n", slots[slot_idx].slot_name);
-	s_send_slot_trigger(ip, port, slots[slot_idx].slot_id);
+	MYLIB_CLI_PRINT("Triggering slot: %s (id=%d)\n",
+		slots[ctx->slot_index].slot_name,
+		slots[ctx->slot_index].slot_id);
+
+	int result = s_send_slot_trigger(ip, port, slots[ctx->slot_index].slot_id);
 
 	free(ip);
-	return 0;
+	return result;
 }
 
 /**
@@ -248,10 +275,14 @@ void s_show_trigger_slot_menu(const char* server_ip)
 
 		int btn_id = mylib_menu_create_button(slot_menu, slot_label, cb_slot_selected);
 
-		// Store slot index as intValue for retrieval in callback
-		MyLibMenuItem* item = slot_menu->items;
-		while (item && item->id != btn_id) item = item->next;
-		if (item) item->data.intValue = i;
+		if (btn_id < 0) {
+			MYLIB_CLI_PRINT("Failed to create button for slot %d\n", i);
+			continue;
+		}
+
+		/* Store context for this slot */
+		slot_contexts[i].slot_index = i;
+		slot_contexts[i].slot_id = btn_id;
 	}
 
 	// Add back button
