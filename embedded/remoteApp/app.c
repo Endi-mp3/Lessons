@@ -28,7 +28,8 @@ static SlotInfo slots[MAX_SLOTS];
 static int slots_count = 0;
 static int selected_slot = -1;
 
-typedef struct {
+typedef struct
+{
 	int slot_index;
 	int slot_id;
 } SlotContext;
