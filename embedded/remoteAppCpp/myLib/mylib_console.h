@@ -1,53 +1,48 @@
 #ifndef MSV_CONSOLE_H
 #define MSV_CONSOLE_H
 
-#include <string.h>
 #include <stdio.h>
+#include <string>
+#include <vector>
 
+namespace MyLib
+{
+	typedef void (*mylib_cli_on_command_fn)(const char *cmd);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+	class CLI
+	{
+		public:
+			const unsigned int max_lines = 100;
+			const unsigned int max_length = 256;
 
-typedef void (*mylib_cli_on_command_fn)(const char *cmd);
+			static CLI* instance();
+			void init(int split_id);
+			void clear();
+			void write(const std::string &line);
+			void write(const char* line);
+			int render();
+			int run(mylib_cli_on_command_fn on_command);
+			int step(mylib_cli_on_command_fn on_command);
+			int output_step();
+		protected:
+			CLI();
+		private:
+			int _split_id;
+			static CLI* _instance;
+			std::vector<std::string> _lines;
 
-/**
- * Initialize console into given split ID.
- * Returns 0 on success.
- */
-int mylib_cli_init(int split_id);
-
-
-/**
- * Append an output line to the console view.
- */
-int mylib_cli_write(const char *line);
-
-/**
- * Render console to screen (call this after MYLIB_CLI_PRINT to see output).
- */
-int mylib_cli_render(void);
+			void redraw_console();
+	};
 
 #define MYLIB_CLI_PRINT(...) \
 	{   \
 		char MYLIB_CLI_PRINT_BUF[4096];	\
 		snprintf(MYLIB_CLI_PRINT_BUF, 4096, __VA_ARGS__); \
-		mylib_cli_write(MYLIB_CLI_PRINT_BUF); \
-		mylib_cli_render(); \
+		CLI::instance()->write(MYLIB_CLI_PRINT_BUF); \
+		CLI::instance()->render(); \
 	}
 
-/**
- * Run input loop; reads user input from the console split,
- * calls on_command for non-empty lines.
- * Blocks until on_command decides to exit (e.g., on "quit").
- */
-int mylib_cli_run(mylib_cli_on_command_fn on_command);
 
-int mylib_cli_step(int split_id, mylib_cli_on_command_fn on_command);
-int mylib_cli_output_step(int split_id);
-#ifdef __cplusplus
-}
-#endif
-
+};
 #endif
 

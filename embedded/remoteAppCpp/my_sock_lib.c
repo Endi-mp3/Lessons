@@ -43,7 +43,7 @@ void my_sock_print_package(const struct Packet* pkt, const uint8_t* pkt_data)
 
 bool my_sock_send(int sock, uint16_t id, enum MySockCommands cmd, size_t data_pkt_len, void* data)
 {
-    struct Packet *pkt = my_malloc(sizeof(struct Packet) + data_pkt_len, "struct Packet* pkt");
+    struct Packet *pkt = (struct Packet *)my_malloc(sizeof(struct Packet) + data_pkt_len, "struct Packet* pkt");
     pkt->header.cmd = cmd;
     pkt->header.id  = id;
     pkt->header.len = data_pkt_len;

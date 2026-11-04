@@ -9,30 +9,30 @@ LOGERR   := $(TMPDIR)/log.error
 # ==== Compiler and flags ====
 CFG := -DMYLIB_SPLITVIEW_USED
 CC      := g++
-CFLAGS  := $(CFG) -Wall -Wextra -std=c99 -g $(shell pkg-config --cflags ncurses)
+CFLAGS  := $(CFG) -Wall -Wextra -std=c++11 -g $(shell pkg-config --cflags ncurses)
 LDFLAGS := $(shell pkg-config --libs ncurses)
 # -I/opt/homebrew/opt/ncurses/include
 INCLUDE := -ImyLib -I../esp32/esp_projects/main
 
 # ==== Sources ====
 # Все .c из корня и myLib/
-SRCS := $(wildcard *.cpp) $(wildcard myLib/*.cpp) $(wildcard *.c) $(wildcard myLib/*.c)
+SRCS := $(wildcard myLib/*.cpp) $(wildcard *.cpp) 
 
 # ==== Headers (для зависимостей) ====
 HDRS := $(wildcard myLib/*.h)
 
 # ==== Object files (сохраняем структуру каталогов) ====
-OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
+OBJS := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SRCS))
 
 # ==== Default target ====
 all: $(TGTDIR)/$(TARGET)
 
 # ==== Link final binary ====
 $(TGTDIR)/$(TARGET): $(OBJS) | $(TGTDIR)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^ $(LDFLAGS)
 
 # ==== Compile source files ====
-$(OBJDIR)/%.o: %.c $(HDRS)
+$(OBJDIR)/%.o: %.cpp $(HDRS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 

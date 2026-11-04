@@ -50,20 +50,29 @@ static WINDOW* create_window_rect(int y, int x, int h, int w) {
 
 int mylib_sv_init(void)
 {
+	initscr();
+	cbreak();
+	noecho();
+	keypad(stdscr, TRUE);
+	curs_set(0);
+	start_color();
+
     memset(nodes, 0, sizeof(nodes));
 
-    int term_h, term_w;
+    int term_h = 0, term_w = 0;
     getmaxyx(stdscr, term_h, term_w);
 
     root_id = alloc_node();
-    if (root_id < 0) return -1;
+    if (root_id < 0)
+		return -1;
 
     nodes[root_id].x = 0;
     nodes[root_id].y = 0;
     nodes[root_id].w = term_w;
     nodes[root_id].h = term_h;
     nodes[root_id].win = create_window_rect(0, 0, term_h, term_w);
-    if (!nodes[root_id].win) return -1;
+    if (!nodes[root_id].win)
+		return -1;
 
     return 0;
 }
@@ -79,6 +88,8 @@ void mylib_sv_shutdown(void)
         }
     }
     root_id = -1;
+    curs_set(1); // Возвращаем курсор
+    endwin();    // Восстанавливаем терминал
 }
 
 static int is_valid(int id) {

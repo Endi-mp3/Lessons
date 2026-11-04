@@ -1,25 +1,29 @@
 #ifndef MSV_SPLITVIEW_H
 #define MSV_SPLITVIEW_H
 
+#include <stdint.h>
 #include <ncurses.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef enum {
+typedef enum
+{
     MYLIB_SV_DIR_HORIZONTAL = 0,  // horizontal line; splits top/bottom
     MYLIB_SV_DIR_VERTICAL   = 1   // vertical line; splits left/right
 } mylib_sv_split_dir_t;
 
-typedef struct {
-    int x;  // origin column inside terminal
-    int y;  // origin row inside terminal
+typedef struct
+{
+    size_t x;  // origin column inside terminal
+    size_t y;  // origin row inside terminal
 } mylib_sv_point_t;
 
-typedef struct {
-    int w;  // width in columns
-    int h;  // height in rows
+typedef struct
+{
+    size_t w;  // width in columns
+    size_t h;  // height in rows
 } mylib_sv_size_t;
 
 /**
