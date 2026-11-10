@@ -8,14 +8,14 @@ using namespace MyLib;
 int main(void)
 {
 
-	int si = mylib_sv_init();
-	mylib_sv_redraw_all();
+	int si = MyLib::SV::init();
+	MyLib::SV::redraw_all();
 	CLI::instance()->init(si);
 	CLI::instance()->write("Hello world in console\n");
 	CLI::instance()->output_step();
 	CLI::instance()->render();
 	usleep(5000000);
 	delete CLI::instance();
-	mylib_sv_shutdown();
+	MyLib::SV::shutdown();
 	return 0;
 }

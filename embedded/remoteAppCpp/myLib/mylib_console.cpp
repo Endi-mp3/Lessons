@@ -54,7 +54,7 @@ int CLI::run(mylib_cli_on_command_fn on_command)
     if (_split_id < 0)
 		return -1;
 
-    WINDOW *w = mylib_sv_get_win(_split_id);
+    WINDOW *w = MyLib::SV::get_win(_split_id);
     if (!w)
 		return -1;
 
@@ -62,7 +62,7 @@ int CLI::run(mylib_cli_on_command_fn on_command)
     while (1) {
         // Find prompt row = last printed row + 1
         mylib_sv_size_t sz;
-        mylib_sv_get_size_id(_split_id, &sz);
+        MyLib::SV::get_size_id(_split_id, &sz);
         int prompt_row = (_lines.size() < sz.h - 2) ? (_lines.size() + 1) : (sz.h - 2);
 		IO::print_at(_split_id, prompt_row, 1, "> ");
         wmove(w, prompt_row, 3);
@@ -104,12 +104,12 @@ int CLI::render()
     if (_split_id < 0)
 		return -1;
 
-    WINDOW *w = mylib_sv_get_win(_split_id);
+    WINDOW *w = MyLib::SV::get_win(_split_id);
     if (!w)
 		return -1;
 
     mylib_sv_size_t sz;
-    if (mylib_sv_get_size_id(_split_id, &sz) != 0)
+    if (MyLib::SV::get_size_id(_split_id, &sz) != 0)
 		return -1;
 
     // Clear the content area
@@ -131,7 +131,7 @@ int CLI::render()
 
 int CLI::step(mylib_cli_on_command_fn cb)
 {
-    WINDOW *w = (_split_id == -1) ? stdscr : mylib_sv_get_win(_split_id);
+    WINDOW *w = (_split_id == -1) ? stdscr : MyLib::SV::get_win(_split_id);
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, TRUE);
@@ -174,7 +174,7 @@ int CLI::step(mylib_cli_on_command_fn cb)
 
 int CLI::output_step()
 {
-    WINDOW *w = (_split_id == -1) ? stdscr : mylib_sv_get_win(_split_id);
+    WINDOW *w = (_split_id == -1) ? stdscr : MyLib::SV::get_win(_split_id);
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, TRUE);

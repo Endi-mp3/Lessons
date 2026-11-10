@@ -12,7 +12,7 @@ typedef struct {
     int parent;     // -1 if root
     int child_a;    // first child id or -1
     int child_b;    // second child id or -1
-    mylib_sv_split_dir_t dir; // direction of split that produced children (valid if has children)
+    MyLib::mylib_sv_split_dir_t dir; // direction of split that produced children (valid if has children)
 } mylib_sv_node_t;
 
 static mylib_sv_node_t nodes[MSV_MAX_NODES];
@@ -26,7 +26,7 @@ static int alloc_node(void) {
             nodes[i].child_a = -1;
             nodes[i].child_b = -1;
             nodes[i].parent = -1;
-            nodes[i].dir = MYLIB_SV_DIR_VERTICAL;
+            nodes[i].dir = MyLib::MYLIB_SV_DIR_VERTICAL;
             return i;
         }
     }
@@ -48,7 +48,7 @@ static WINDOW* create_window_rect(int y, int x, int h, int w) {
     return win;
 }
 
-int mylib_sv_init(void)
+int MyLib::SV::init(void)
 {
 	initscr();
 	cbreak();
@@ -77,7 +77,7 @@ int mylib_sv_init(void)
     return 0;
 }
 
-void mylib_sv_shutdown(void)
+void MyLib::SV::shutdown(void)
 {
     for (int i = 0; i < MSV_MAX_NODES; i++) {
         if (nodes[i].used) {
@@ -96,7 +96,7 @@ static int is_valid(int id) {
     return (id >= 0 && id < MSV_MAX_NODES && nodes[id].used);
 }
 
-int mylib_sv_clear_id(int id)
+int MyLib::SV::clear_id(int id)
 {
     if (!is_valid(id)) return -1;
     WINDOW *w = nodes[id].win;
@@ -113,7 +113,7 @@ int mylib_sv_clear_id(int id)
     return 0;
 }
 
-int mylib_sv_get_base_id(int id, mylib_sv_point_t *out)
+int MyLib::SV::get_base_id(int id, mylib_sv_point_t *out)
 {
     if (!is_valid(id) || !out) return -1;
     out->x = nodes[id].x;
@@ -121,7 +121,7 @@ int mylib_sv_get_base_id(int id, mylib_sv_point_t *out)
     return 0;
 }
 
-int mylib_sv_get_size_id(int id, mylib_sv_size_t *out)
+int MyLib::SV::get_size_id(int id, mylib_sv_size_t *out)
 {
     if (!is_valid(id) || !out) return -1;
     out->w = nodes[id].w;
@@ -129,13 +129,13 @@ int mylib_sv_get_size_id(int id, mylib_sv_size_t *out)
     return 0;
 }
 
-WINDOW* mylib_sv_get_win(int id)
+WINDOW* MyLib::SV::get_win(int id)
 {
     if (!is_valid(id)) return NULL;
     return nodes[id].win;
 }
 
-int mylib_sv_create_split(int parent_id, mylib_sv_split_dir_t dir)
+int MyLib::SV::create_split(int parent_id, mylib_sv_split_dir_t dir)
 {
     if (!is_valid(parent_id)) return -1;
     mylib_sv_node_t *p = &nodes[parent_id];
@@ -208,7 +208,7 @@ int mylib_sv_create_split(int parent_id, mylib_sv_split_dir_t dir)
     return b_id;
 }
 
-void mylib_sv_redraw_all(void)
+void MyLib::SV::redraw_all(void)
 {
     // Redraw borders for all nodes
     for (int i = 0; i < MSV_MAX_NODES; i++) {
