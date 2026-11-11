@@ -19,28 +19,28 @@ CLI* CLI::instance()
 
 CLI::CLI()
 {
-	_split_id = -1;
+	_sv = nullptr;
 }
 
-void CLI::init(int si)
+void CLI::init(SplitViewNode* sv)
 {
-	_split_id = si;
+	_sv = sv;
 	clear();
 }
 
 void CLI::redraw_console()
 {
-    if (_split_id < 0)
+    if (_sv != nullptr)
 		return;
-	IO::clear(_split_id);
+	IO::clear(_sv);
     // draw from bottom up if overflow
     size_t row = 1;
     for (size_t i = (_lines.size() > max_lines ? _lines.size() - max_lines : 0); i < _lines.size(); i++) {
-		IO::print_at(_split_id, row, 1, "%s", _lines.at(i).c_str());
+		IO::print_at(_sv, row, 1, "%s", _lines.at(i).c_str());
         row++;
     }
     // prompt line
-	IO::print_at(_split_id, row, 1, "> ");
+	IO::print_at(_sv, row, 1, "> ");
 }
 
 void CLI::clear()
@@ -51,20 +51,19 @@ void CLI::clear()
 
 int CLI::run(mylib_cli_on_command_fn on_command)
 {
-    if (_split_id < 0)
+    if (_sv != nullptr)
 		return -1;
 
-    WINDOW *w = MyLib::SV::get_win(_split_id);
+    WINDOW *w = _sv->win();
     if (!w)
 		return -1;
 
     char buf[CLI::max_length];
     while (1) {
         // Find prompt row = last printed row + 1
-        mylib_sv_size_t sz;
-        MyLib::SV::get_size_id(_split_id, &sz);
+		sv_size_t sz = _sv->size();
         int prompt_row = (_lines.size() < sz.h - 2) ? (_lines.size() + 1) : (sz.h - 2);
-		IO::print_at(_split_id, prompt_row, 1, "> ");
+		IO::print_at(_sv, prompt_row, 1, "> ");
         wmove(w, prompt_row, 3);
         wclrtoeol(w);
         wrefresh(w);
@@ -101,25 +100,23 @@ void CLI::write(const char *line)
 // Called after MYLIB_CLI_WRITE or via MYLIB_CLI_PRINT macro.
 int CLI::render()
 {
-    if (_split_id < 0)
+    if (_sv != nullptr)
 		return -1;
 
-    WINDOW *w = MyLib::SV::get_win(_split_id);
+    WINDOW *w = _sv->win();
     if (!w)
 		return -1;
 
-    mylib_sv_size_t sz;
-    if (MyLib::SV::get_size_id(_split_id, &sz) != 0)
-		return -1;
+	MyLib::sv_size_t sz = _sv->size();
 
     // Clear the content area
-	IO::clear(_split_id);
+	IO::clear(_sv);
 
     // Display last (max_y - 2) lines from history
     size_t start = (_lines.size() > sz.h - 2) ? _lines.size() - (sz.h - 2) : 0;
     size_t row = 1;
     for (size_t i = start; i < _lines.size() && row < sz.h - 1; i++, row++) {
-		IO::print_at(_split_id, row, 1, "%s", _lines[i].c_str());
+		IO::print_at(_sv, row, 1, "%s", _lines[i].c_str());
     }
 
     // Redraw border and flush to screen
@@ -131,7 +128,7 @@ int CLI::render()
 
 int CLI::step(mylib_cli_on_command_fn cb)
 {
-    WINDOW *w = (_split_id == -1) ? stdscr : MyLib::SV::get_win(_split_id);
+    WINDOW *w = (_sv == nullptr) ? stdscr : _sv->win();
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, TRUE);
@@ -174,7 +171,7 @@ int CLI::step(mylib_cli_on_command_fn cb)
 
 int CLI::output_step()
 {
-    WINDOW *w = (_split_id == -1) ? stdscr : MyLib::SV::get_win(_split_id);
+    WINDOW *w = (_sv == nullptr) ? stdscr : _sv->win();
     if (!w) return -1;
     keypad(w, TRUE);
     nodelay(w, TRUE);

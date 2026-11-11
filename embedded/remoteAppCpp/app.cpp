@@ -7,15 +7,24 @@ using namespace MyLib;
 
 int main(void)
 {
-
-	int si = MyLib::SV::init();
-	MyLib::SV::redraw_all();
-	CLI::instance()->init(si);
+	SplitView sv;
+	SplitViewNode* svn = sv.rootNode();
+	SplitViewNode* svn2 = svn->split(SplitViewNode::VERTICAL);
+	SplitViewNode* svn3 = svn->split(SplitViewNode::HORIZONTAL);
+	svn->redraw();
+	svn2->redraw();
+	svn3->redraw();
+	CLI::instance()->init(svn);
 	CLI::instance()->write("Hello world in console\n");
 	CLI::instance()->output_step();
 	CLI::instance()->render();
+	svn->redraw();
+	svn2->redraw();
+	svn3->redraw();
 	usleep(5000000);
 	delete CLI::instance();
-	MyLib::SV::shutdown();
+	delete svn;
+	delete svn2;
+	delete svn3;
 	return 0;
 }

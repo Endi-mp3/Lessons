@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include "mylib_splitview.h"
 
 namespace MyLib
 {
@@ -16,7 +17,7 @@ namespace MyLib
 			const unsigned int max_length = 256;
 
 			static CLI* instance();
-			void init(int split_id);
+			void init(SplitViewNode* sv);
 			void clear();
 			void write(const std::string &line);
 			void write(const char* line);
@@ -27,7 +28,7 @@ namespace MyLib
 		protected:
 			CLI();
 		private:
-			int _split_id;
+			SplitViewNode* _sv;
 			static CLI* _instance;
 			std::vector<std::string> _lines;
 

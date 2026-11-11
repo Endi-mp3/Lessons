@@ -11,83 +11,67 @@ extern "C" {
 
 namespace MyLib
 {
-typedef enum
-{
-    MYLIB_SV_DIR_HORIZONTAL = 0,  // horizontal line; splits top/bottom
-    MYLIB_SV_DIR_VERTICAL   = 1   // vertical line; splits left/right
-} mylib_sv_split_dir_t;
 
-typedef struct
-{
-    size_t x;  // origin column inside terminal
-    size_t y;  // origin row inside terminal
-} mylib_sv_point_t;
-
-typedef struct
-{
-    size_t w;  // width in columns
-    size_t h;  // height in rows
-} mylib_sv_size_t;
-
-/**
- * Initialize root split tree covering the entire terminal screen.
- * Creates a single root window with a border.
- * Must be called after initscr().
- * Returns 0 on success, -1 on failure.
- */
-	class SV
+	typedef struct
 	{
+		size_t x;  // origin column inside terminal
+		size_t y;  // origin row inside terminal
+	} sv_point_t;
+
+	typedef struct
+	{
+		size_t w;  // width in columns
+		size_t h;  // height in rows
+	} sv_size_t;
+
+	/**
+	 * Initialize root split tree covering the entire terminal screen.
+	 * Creates a single root window with a border.
+	 * Must be called after initscr().
+	 * Returns 0 on success, -1 on failure.
+	 */
+
+	class SplitViewNode
+	{
+		public:
+			typedef enum
+			{
+				HORIZONTAL = 0,  // horizontal line; splits top/bottom
+				VERTICAL   = 1   // vertical line; splits left/right
+			} dir_t;
+
+			SplitViewNode(int x = 0, int y = 0, int w = 0, int h = 0, SplitViewNode::dir_t dir = VERTICAL);
+			SplitViewNode* split(SplitViewNode::dir_t dir);
+
+			~SplitViewNode();
+
+			int clear();
+			void redraw();
+
+			WINDOW* win() const;
+			const sv_point_t& point() const;
+			const sv_size_t& size() const;
+		private:
+			WINDOW *_win;
+			sv_size_t _size;
+			sv_point_t _point;
+			dir_t _dir;
+			/// Functions
+			void  _draw_border();
+			WINDOW* _create_window_rect(int y, int x, int h, int w);
+	};
+
+	class SplitView
+	{
+	private:
+		SplitViewNode* _root_node;
 	public:
-		
-		static int init(void);
-
-		/**
-		 * Shutdown split system and destroy all windows.
-		 */
-		static void shutdown(void);
-
-		/**
-		 * Create a split of the region identified by 'parent_id' into two child windows.
-		 * The split direction controls the separator orientation.
-		 * Returns the ID of the newly created child (secondary) region, or -1 on error.
-		 * The original 'parent_id' becomes the first child; the function returns the ID of the second.
-		 *
-		 * Layout policy:
-		 * - Vertical: left gets roughly half, right gets remainder.
-		 * - Horizontal: top gets roughly half, bottom gets remainder.
-		 * - Both children get borders; separator rendered with ACS lines.
-		 */
-		static int create_split(int parent_id, mylib_sv_split_dir_t dir);
-
-		/**
-		 * Clear the content area (inside the border) of the window by ID.
-		 * Does not remove the border or the split lines.
-		 * Returns 0 on success, -1 if ID invalid.
-		 */
-		static int clear_id(int id);
-
-		/**
-		 * Get the origin (top-left) point of a window by ID.
-		 * Returns 0 on success, -1 if ID invalid.
-		 */
-		static int get_base_id(int id, mylib_sv_point_t *out);
-
-		/**
-		 * Get the size (width, height) of a window by ID.
-		 * Returns 0 on success, -1 if ID invalid.
-		 */
-		static int get_size_id(int id, mylib_sv_size_t *out);
-
-		/**
-		 * Retrieve the ncurses WINDOW* for a given split ID (read-only use).
-		 * Returns NULL if ID invalid.
-		 */
-		static WINDOW* get_win(int id);
-
-		/**
-		 * Redraw borders for all windows and separators.
-		 */
-		static void redraw_all(void);
+		SplitView();
+		~SplitView();
+		SplitViewNode* rootNode()
+		{
+			return _root_node;
+		}
 	};
 }
 #ifdef __cplusplus

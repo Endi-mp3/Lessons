@@ -3,52 +3,130 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MSV_MAX_NODES 128
+using namespace MyLib;
 
-typedef struct {
-    int used;
-    WINDOW *win;
-    int x, y, w, h; // geometry
-    int parent;     // -1 if root
-    int child_a;    // first child id or -1
-    int child_b;    // second child id or -1
-    MyLib::mylib_sv_split_dir_t dir; // direction of split that produced children (valid if has children)
-} mylib_sv_node_t;
-
-static mylib_sv_node_t nodes[MSV_MAX_NODES];
-static int root_id = -1;
-
-static int alloc_node(void) {
-    for (int i = 0; i < MSV_MAX_NODES; i++) {
-        if (!nodes[i].used) {
-            nodes[i].used = 1;
-            nodes[i].win = NULL;
-            nodes[i].child_a = -1;
-            nodes[i].child_b = -1;
-            nodes[i].parent = -1;
-            nodes[i].dir = MyLib::MYLIB_SV_DIR_VERTICAL;
-            return i;
-        }
-    }
-    return -1;
+SplitViewNode::SplitViewNode(int x, int y, int w, int h, SplitViewNode::dir_t dir)
+{
+	_size.w = w;
+	_size.h = h;
+	_point.x = x;
+	_point.y = y;
+	_win = _create_window_rect(x, y, h, w);
+	_dir = dir;
 }
 
-static void draw_border(WINDOW *w) {
-    if (!w) return;
-    box(w, 0, 0);
-    wrefresh(w);
+SplitViewNode::~SplitViewNode()
+{
+	delwin(_win);
 }
 
-static WINDOW* create_window_rect(int y, int x, int h, int w) {
+WINDOW* MyLib::SplitViewNode::_create_window_rect(int y, int x, int h, int w)
+{
     WINDOW *win = newwin(h, w, y, x);
     if (win) {
+		_win = win;
         keypad(win, TRUE);
-        draw_border(win);
+        _draw_border();
     }
     return win;
 }
 
-int MyLib::SV::init(void)
+SplitViewNode* SplitViewNode::split(SplitViewNode::dir_t dir)
+{
+	int x = _point.x, y = _point.y, w = _size.w, h = _size.h;
+	int new_x = _point.x, new_y = _point.y, new_w = _size.w, new_h = _size.h;
+	_point.x = x;
+	_point.y = y;
+    if (dir == SplitViewNode::VERTICAL) {
+        // left/right; add a vertical separator column
+        int left_w = w / 2;
+        int sep_w = 1;
+        int right_w = w - left_w - sep_w;
+
+        _size.w = left_w;
+        _size.h = h;
+
+        new_x = x + left_w + sep_w;
+        new_y = y;
+        new_w = right_w;
+        new_h = h;
+        for (int r = y; r < y + h; r++) {
+            mvaddch(r, x + left_w, ACS_VLINE);
+        }
+    } else {
+        int top_h = h / 2;
+        int sep_h = 1;
+        int bottom_h = h - top_h - sep_h;
+
+        _size.w = w;
+        _size.h = top_h;
+
+        new_x = x;
+        new_y = y + top_h + sep_h;
+        new_w = w;
+        new_h = bottom_h;
+
+        for (int c = x; c < x + w; c++) {
+            mvaddch(y + top_h, c, ACS_HLINE);
+        }
+    }
+    refresh();
+	delwin(_win);
+	_dir = dir;
+    _win = _create_window_rect(_point.y, _point.x, _size.h, _size.w);
+
+	return new SplitViewNode(new_x, new_y, new_w, new_h, dir);
+}
+
+int SplitViewNode::clear()
+{
+    for (int r = 1; r < _size.h - 1; r++) {
+        for (int c = 1; c < _size.w - 1; c++) {
+            mvwaddch(_win, r, c, ' ');
+        }
+    }
+    wrefresh(_win);
+}
+
+void SplitViewNode::redraw()
+{
+	box(_win, 0, 0);
+	wrefresh(_win);
+	if (_dir == SplitViewNode::VERTICAL) {
+		int left_w = _size.w;
+		for (int r = _point.y; r < _point.y + _size.h; r++)
+			mvaddch(r, _point.x + left_w, ACS_VLINE);
+	} else {
+		int top_h = _size.h;
+		for (int c = _point.x; c < _point.x + _size.w; c++)
+			mvaddch(_point.y + top_h, c, ACS_HLINE);
+	}
+	refresh();
+}
+
+void SplitViewNode::_draw_border()
+{
+    box(_win, 0, 0);
+    wrefresh(_win);
+}
+
+WINDOW* SplitViewNode::win() const
+{
+	return _win;
+}
+
+const sv_point_t& SplitViewNode::point() const
+{
+	return _point;
+}
+
+const sv_size_t& SplitViewNode::size() const
+{
+	return _size;
+}
+
+///----------------------------------------------------------------------
+MyLib::SplitView::SplitView()
 {
 	initscr();
 	cbreak();
@@ -57,181 +135,13 @@ int MyLib::SV::init(void)
 	curs_set(0);
 	start_color();
 
-    memset(nodes, 0, sizeof(nodes));
-
     int term_h = 0, term_w = 0;
     getmaxyx(stdscr, term_h, term_w);
-
-    root_id = alloc_node();
-    if (root_id < 0)
-		return -1;
-
-    nodes[root_id].x = 0;
-    nodes[root_id].y = 0;
-    nodes[root_id].w = term_w;
-    nodes[root_id].h = term_h;
-    nodes[root_id].win = create_window_rect(0, 0, term_h, term_w);
-    if (!nodes[root_id].win)
-		return -1;
-
-    return 0;
+	_root_node = new SplitViewNode(0, 0, term_w, term_h);
 }
 
-void MyLib::SV::shutdown(void)
+MyLib::SplitView::~SplitView()
 {
-    for (int i = 0; i < MSV_MAX_NODES; i++) {
-        if (nodes[i].used) {
-            if (nodes[i].win) {
-                delwin(nodes[i].win);
-            }
-            nodes[i].used = 0;
-        }
-    }
-    root_id = -1;
-    curs_set(1); // Возвращаем курсор
-    endwin();    // Восстанавливаем терминал
+	curs_set(1); // Возвращаем курсор
+	endwin();    // Восстанавливаем терминал
 }
-
-static int is_valid(int id) {
-    return (id >= 0 && id < MSV_MAX_NODES && nodes[id].used);
-}
-
-int MyLib::SV::clear_id(int id)
-{
-    if (!is_valid(id)) return -1;
-    WINDOW *w = nodes[id].win;
-    if (!w) return -1;
-    // clear inside border: leave edges intact
-    int h = nodes[id].h;
-    int wcols = nodes[id].w;
-    for (int r = 1; r < h - 1; r++) {
-        for (int c = 1; c < wcols - 1; c++) {
-            mvwaddch(w, r, c, ' ');
-        }
-    }
-    wrefresh(w);
-    return 0;
-}
-
-int MyLib::SV::get_base_id(int id, mylib_sv_point_t *out)
-{
-    if (!is_valid(id) || !out) return -1;
-    out->x = nodes[id].x;
-    out->y = nodes[id].y;
-    return 0;
-}
-
-int MyLib::SV::get_size_id(int id, mylib_sv_size_t *out)
-{
-    if (!is_valid(id) || !out) return -1;
-    out->w = nodes[id].w;
-    out->h = nodes[id].h;
-    return 0;
-}
-
-WINDOW* MyLib::SV::get_win(int id)
-{
-    if (!is_valid(id)) return NULL;
-    return nodes[id].win;
-}
-
-int MyLib::SV::create_split(int parent_id, mylib_sv_split_dir_t dir)
-{
-    if (!is_valid(parent_id)) return -1;
-    mylib_sv_node_t *p = &nodes[parent_id];
-
-    // Cannot split if already has children
-    if (p->child_a != -1 || p->child_b != -1) return -1;
-
-    int a_id = parent_id;
-    int b_id = alloc_node();
-    if (a_id < 0 || b_id < 0) return -1;
-
-    nodes[b_id].parent = parent_id;
-
-    int x = p->x, y = p->y, w = p->w, h = p->h;
-
-    if (dir == MYLIB_SV_DIR_VERTICAL) {
-        // left/right; add a vertical separator column
-        int left_w = w / 2;
-        int sep_w = 1;
-        int right_w = w - left_w - sep_w;
-
-        nodes[a_id].x = x;
-        nodes[a_id].y = y;
-        nodes[a_id].w = left_w;
-        nodes[a_id].h = h;
-
-        nodes[b_id].x = x + left_w + sep_w;
-        nodes[b_id].y = y;
-        nodes[b_id].w = right_w;
-        nodes[b_id].h = h;
-
-        // render separator in parent region
-        // We keep parent window as a container, children get their own windows
-        // Draw separator line using stdscr for global coordinates
-        for (int r = y; r < y + h; r++) {
-            mvaddch(r, x + left_w, ACS_VLINE);
-        }
-    } else {
-        // horizontal: top/bottom; add a horizontal separator row
-        int top_h = h / 2;
-        int sep_h = 1;
-        int bottom_h = h - top_h - sep_h;
-
-        nodes[a_id].x = x;
-        nodes[a_id].y = y;
-        nodes[a_id].w = w;
-        nodes[a_id].h = top_h;
-
-        nodes[b_id].x = x;
-        nodes[b_id].y = y + top_h + sep_h;
-        nodes[b_id].w = w;
-        nodes[b_id].h = bottom_h;
-
-        for (int c = x; c < x + w; c++) {
-            mvaddch(y + top_h, c, ACS_HLINE);
-        }
-    }
-
-    refresh();
-
-	delwin(nodes[a_id].win);
-    nodes[a_id].win = create_window_rect(nodes[a_id].y, nodes[a_id].x, nodes[a_id].h, nodes[a_id].w);
-    nodes[b_id].win = create_window_rect(nodes[b_id].y, nodes[b_id].x, nodes[b_id].h, nodes[b_id].w);
-
-    p->child_a = a_id;
-    p->child_b = b_id;
-    p->dir = dir;
-
-    // Return ID of the second (sibling) region so caller can use both: parent_id and returned id.
-    return b_id;
-}
-
-void MyLib::SV::redraw_all(void)
-{
-    // Redraw borders for all nodes
-    for (int i = 0; i < MSV_MAX_NODES; i++) {
-        if (nodes[i].used && nodes[i].win) {
-            box(nodes[i].win, 0, 0);
-            wrefresh(nodes[i].win);
-        }
-    }
-    // Redraw separators by re-walking parent-child splits
-    for (int i = 0; i < MSV_MAX_NODES; i++) {
-        if (!nodes[i].used) continue;
-        mylib_sv_node_t *p = &nodes[i];
-        if (p->child_a != -1 && p->child_b != -1) {
-            int x = p->x, y = p->y, w = p->w, h = p->h;
-            if (p->dir == MYLIB_SV_DIR_VERTICAL) {
-                int left_w = nodes[p->child_a].w;
-                for (int r = y; r < y + h; r++) mvaddch(r, x + left_w, ACS_VLINE);
-            } else {
-                int top_h = nodes[p->child_a].h;
-                for (int c = x; c < x + w; c++) mvaddch(y + top_h, c, ACS_HLINE);
-            }
-        }
-    }
-    refresh();
-}
-
